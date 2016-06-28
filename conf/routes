@@ -4,12 +4,21 @@
 
 # An example controller showing a sample home page
 GET     /                           controllers.HomeController.index
+
+
 # Download a BAM file
-GET     /download                   controllers.BamController.download(name: String)
+GET     /download/:key                   controllers.BamController.download(key: String)
+# Create a symlink of a BAM file in /www and return the path to it
+GET     /symlink/:key                    controllers.BamController.symlink(key: String)
+# Return the output of "samtools view -hb"
+GET     /read/:key                       controllers.BamController.read(key: String, region: String ?= "")
 # View a region of a BAM file
-GET     /view                       controllers.BamController.view
+GET     /view/:key                       controllers.BamController.view(key: String, region: String ?= "")
+
+
 # An example controller showing how to use dependency injection
 GET     /count                      controllers.CountController.count
+
 # An example controller showing how to write asynchronous code
 GET     /message                    controllers.AsyncController.message
 
