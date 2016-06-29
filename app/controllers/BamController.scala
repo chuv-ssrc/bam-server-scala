@@ -19,6 +19,7 @@ import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
 import htsjdk.samtools.{SAMFileHeader, SAMFileWriter, SAMFileWriterFactory, SamReader, SamReaderFactory}
+import com.typesafe.config.ConfigFactory
 import sys.process._
 
 
@@ -40,10 +41,9 @@ class BamReader(val bam:String){
   */
 class BamController @Inject()(db: Database) extends Controller {
 
-  val BAM_PATH = "resources/"  // Repository of original BAM files
-  val TEMP_BAM_DIR = Paths.get("resources/temp").toAbsolutePath.toString   // Where we copy the temporary BAM chunks
-  val APACHE_BAM_DIR = "/Library/WebServer/Documents/bam/"  // Where files can be served by Apache - accessible by URL
-
+  val BAM_PATH = ConfigFactory.load().getString("env.BAM_PATH")
+  val APACHE_BAM_DIR = ConfigFactory.load().getString("env.APACHE_BAM_DIR")
+  val TEMP_BAM_DIR = ConfigFactory.load().getString("env.TEMP_BAM_DIR")
 
   /* Return the file names scorresponding to this key */
   def getBamNames(key: String) : List[String] = {
@@ -104,7 +104,7 @@ class BamController @Inject()(db: Database) extends Controller {
   def symlink(key: String, region: Option[String]) = Action {
     val filename = getBamNames(key).head
     val bamOriginal = Paths.get(BAM_PATH, filename)
-    val randomName = (Random.alphanumeric take 20).mkString + ".bam"
+    val randomName = "_" + (Random.alphanumeric take 19).mkString + ".bam"
 
     region match {
       // If no region, just add a symlink to the file where Apache can read it
