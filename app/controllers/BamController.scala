@@ -5,20 +5,21 @@ import javax.inject.Inject
 import play.api.mvc._
 import play.api.libs.json.Json._
 import play.api.db._
-import play.api.http.HttpEntity
-import play.api.libs.streams.Streams
-import akka.util.ByteString
+//import play.api.http.HttpEntity
+//import play.api.libs.streams.Streams
+//import akka.util.ByteString
 
 import java.io.{ByteArrayInputStream, File}
 import java.nio.file.{Files, Path, Paths}
-import java.nio.charset.StandardCharsets
+//import java.nio.charset.StandardCharsets
 
-import scala.io.Source
-import scala.collection.mutable
+//import scala.io.Source
+//import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 
-import htsjdk.samtools.{SAMFileHeader, SAMFileWriter, SAMFileWriterFactory, SamReader, SamReaderFactory}
+import htsjdk.samtools.{SamReader, SamReaderFactory}
+//import htsjdk.samtools.{SAMFileHeader, SAMFileWriter, SAMFileWriterFactory}
 import com.typesafe.config.ConfigFactory
 import sys.process._
 
@@ -65,9 +66,9 @@ class BamController @Inject()(db: Database) extends Controller {
    */
   def read(key: String, region: String, description: Option[String]) = Action {
     val filename = getBamNames(key).head
-    val bam = Paths.get(BAM_PATH, filename)
+    val bam: Path = Paths.get(BAM_PATH, filename)
     val command = s"samtools view -hb $bam $region" #| "base64"
-    val res = command.!!
+    val res: String = command.!!
     // TODO: check the format of $region
     Ok(res).as(HTML)
   }
@@ -103,7 +104,7 @@ class BamController @Inject()(db: Database) extends Controller {
    */
   def symlink(key: String, region: Option[String], description: Option[String]) = Action {
     val filename = getBamNames(key).head
-    val bamOriginal = Paths.get(BAM_PATH, filename)
+    val bamOriginal: Path = Paths.get(BAM_PATH, filename)
     val randomName = "_" + (Random.alphanumeric take 19).mkString + ".bam"
 
     region match {
@@ -142,7 +143,7 @@ class BamController @Inject()(db: Database) extends Controller {
    */
   def download(key: String, region: String, description: Option[String]) = Action {
     val filename = getBamNames(key).head
-    val bam = Paths.get(BAM_PATH, filename).toString
+    val bam: String = Paths.get(BAM_PATH, filename).toString
     Ok.sendFile(
       content = new java.io.File(bam),
       fileName = _ => filename
