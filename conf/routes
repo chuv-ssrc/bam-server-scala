@@ -7,13 +7,13 @@ GET     /                           controllers.HomeController.index
 
 
 # Download a BAM file
-GET     /download/:key                   controllers.BamController.download(key: String)
+GET     /download/:key                   controllers.BamController.download(key: String, region: String ?= "", desc: Option[String])
 # Create a symlink of a BAM file in /www and return the path to it
-GET     /symlink/:key                    controllers.BamController.symlink(key: String)
+GET     /symlink/:key                    controllers.BamController.symlink(key: String, region: Option[String], desc: Option[String])
 # Return the output of "samtools view -hb"
-GET     /read/:key                       controllers.BamController.read(key: String, region: String ?= "")
+GET     /read/:key                       controllers.BamController.read(key: String, region: String ?= "", desc: Option[String])
 # View a region of a BAM file
-GET     /view/:key                       controllers.BamController.view(key: String, region: String ?= "")
+GET     /view/:key                       controllers.BamController.view(key: String, region: String ?= "", desc: Option[String])
 
 
 # An example controller showing how to use dependency injection

@@ -5,26 +5,25 @@ import javax.inject.Inject
 import play.api.mvc._
 import play.api.libs.json.Json._
 import play.api.db._
-import play.api.libs.iteratee.Enumerator
-import htsjdk.samtools.{SAMFileHeader, SAMFileWriter, SAMFileWriterFactory, SamReader, SamReaderFactory}
-import java.io.{ByteArrayInputStream, File}
-import java.nio.charset.StandardCharsets
-import java.nio.file.{Files, Paths}
-
-import akka.stream.scaladsl.StreamConverters
-import akka.util.ByteString
 import play.api.http.HttpEntity
 import play.api.libs.streams.Streams
+import akka.util.ByteString
 
+import java.io.{ByteArrayInputStream, File}
+import java.nio.file.{Files, Path, Paths}
+import java.nio.charset.StandardCharsets
+
+import scala.io.Source
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
-import scala.io.Source
+import scala.util.Random
+
+import htsjdk.samtools.{SAMFileHeader, SAMFileWriter, SAMFileWriterFactory, SamReader, SamReaderFactory}
 import sys.process._
 
 
 class BamReader(val bam:String){
   val reader:SamReader = SamReaderFactory.makeDefault().open(new File(bam))
-
   def head() = {
     var i = 0
     val iterate = reader.iterator()
@@ -41,9 +40,10 @@ class BamReader(val bam:String){
   */
 class BamController @Inject()(db: Database) extends Controller {
 
-  val bamPath = "resources/"
-  val bamFilename = "141F.recal.bam"
-  val testbam = bamPath + bamFilename
+  val BAM_PATH = "resources/"  // Repository of original BAM files
+  val TEMP_BAM_DIR = Paths.get("resources/temp").toAbsolutePath.toString   // Where we copy the temporary BAM chunks
+  val APACHE_BAM_DIR = "/Library/WebServer/Documents/bam/"  // Where files can be served by Apache - accessible by URL
+
 
   /* Return the file names scorresponding to this key */
   def getBamNames(key: String) : List[String] = {
@@ -54,56 +54,32 @@ class BamController @Inject()(db: Database) extends Controller {
       while (res.next()) {
         filenames += res.getString("filename")
       }
-      println(filenames)
+      println("File names: " + filenames.mkString)
       filenames.toList
     }
   }
 
-  /* Return the bam text as output by "samtools view -hb <filename> <region>" */
+  /*
+   * Return the BAM text as output by "samtools view -hb <filename> <region>".
+   * It is encoded in base64 because transfers have to be ascii (?).
+   */
   def read(key: String, region: String) = Action {
     val filename = getBamNames(key).head
-    val bam = Paths.get(bamPath, filename)
-    val command = s"samtools view -hb $bam $region" #| s"base64"
+    val bam = Paths.get(BAM_PATH, filename)
+    val command = s"samtools view -hb $bam $region" #| "base64"
     val res = command.!!
-    val bres = res.toCharArray.map(_.toByte)
-    //println(res.length, res.isInstanceOf[Array[Byte]])
     // TODO: check the format of $region
-
-    //Result(
-    //  header = ResponseHeader(200, Map.empty),
-    //  body = HttpEntity.Streamed(ByteString(res), Some(res.length), Some("text/plain"))
-    //)
-
-    Result(
-      header = ResponseHeader(200, Map.empty),
-      body = HttpEntity.Strict(ByteString(res), Some("application/octet-stream"))
-    ).as(HTML)
-
-    //Ok(res).as(HTML)
-
-    //val reader: SamReader = SamReaderFactory.makeDefault().open(new File(testbam))
-    //println(reader)
-    ////val it = reader.iterator
-    ////while (it.hasNext) { println(it.next()) }
-    //val q = reader.query("1", 0, 7512448, true)
-    //println(q)
-    //reader.close()
-    //val header: SAMFileHeader = reader.getFileHeader()
-    //println(1, header)
-    //val sf: SAMFileWriterFactory = new SAMFileWriterFactory
-    //println(2, header, System.out, new File("/dev/stdout"))
-    //val bw: SAMFileWriter = sf.makeBAMWriter(header, false, new File("/dev/stdout"))
-    //println(3)
-    //while (q.hasNext) {
-    //  bw.addAlignment(q.next())
-    //}
-
+    Ok(res).as(HTML)
   }
 
 
+  /*
+   * Return a JSON summarizing the content of this BAM region (1 item per alignment)
+   */
   def view(key: String, region: String) = Action {
-    val bam = new BamReader(testbam)
-    val it = bam.reader.iterator
+    val filename = getBamNames(key).head
+    val reader: SamReader = SamReaderFactory.makeDefault().open(new File(filename))
+    val it = reader.iterator
     var reads = new ArrayBuffer[Map[String, String]]
     while (it.hasNext) {
       val read = it.next
@@ -113,32 +89,64 @@ class BamController @Inject()(db: Database) extends Controller {
         "start" -> read.getAlignmentStart.toString,
         "end" -> read.getAlignmentEnd.toString,
         "cigar" -> read.getCigarString
+        // ...
       )
     }
     Ok(toJson(reads))
   }
 
 
-  def symlink(key: String) = Action {
+  /*
+   * Return a URL pointing to a symbolic link to the requested portion of the BAM.
+   * The function first extracts the region with "samtools view", writes the result to
+   *   the local resource/temp, then creates a symbolic link to it in APACHE_BAM_DIR.
+   */
+  def symlink(key: String, region: Option[String]) = Action {
     val filename = getBamNames(key).head
-    Files.createSymbolicLink(
-      Paths.get("/Library/WebServer/Documents/bam", bamFilename),
-      Paths.get(bamPath, bamFilename)
-    )
-    Ok("Creating symlink to " + Paths.get("/Library/WebServer/Documents/bam", bamFilename))
+    val bamOriginal = Paths.get(BAM_PATH, filename)
+    val randomName = (Random.alphanumeric take 20).mkString + ".bam"
+
+    region match {
+      // If no region, just add a symlink to the file where Apache can read it
+      case None => Files.createSymbolicLink(
+        Paths.get(APACHE_BAM_DIR, randomName),
+        Paths.get(BAM_PATH, filename)
+      )
+      // If a region is specified, extract the sub-BAM, write it to a temp directory, then create a symlink to it
+      case Some(s: String) =>
+        val dest: String = Paths.get(TEMP_BAM_DIR, randomName).toString
+        val commandExtract = s"samtools view -hb $bamOriginal $s"  #>> new File(dest)
+        val commandIndex = s"samtools index $dest"
+        println("Extracting region: " + commandExtract.toString)
+        println("Indexing: " + commandIndex.toString)
+        commandExtract.!
+        commandIndex.!
+        Files.createSymbolicLink(
+          Paths.get(APACHE_BAM_DIR, randomName),
+          Paths.get(TEMP_BAM_DIR, randomName)
+        )
+        Files.createSymbolicLink(
+          Paths.get(APACHE_BAM_DIR, randomName+".bai"),
+          Paths.get(TEMP_BAM_DIR, randomName+".bai")
+        )
+    }
+
+    println("Creating symlink to " + Paths.get(APACHE_BAM_DIR, randomName).toString)
+    val url = "http://localhost/bam/" + randomName
+    Ok(url)
   }
 
 
-  def download(key: String) = Action {
+  /*
+   * Download the whole file directly
+   */
+  def download(key: String, region: String) = Action {
     val filename = getBamNames(key).head
-    if (key == "asdf") {
-      Ok.sendFile(
-        content = new java.io.File(bamFilename),
-        fileName = _ => bamFilename
-      )
-    } else {
-      Ok("Got request" + key)
-    }
+    val bam = Paths.get(BAM_PATH, filename).toString
+    Ok.sendFile(
+      content = new java.io.File(bam),
+      fileName = _ => filename
+    )
   }
 
 }
