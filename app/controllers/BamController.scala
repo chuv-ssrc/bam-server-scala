@@ -43,7 +43,7 @@ class BamController @Inject()(db: Database) extends Controller {
 
   val BAM_PATH = ConfigFactory.load().getString("env.BAM_PATH")
   val APACHE_BAM_DIR = ConfigFactory.load().getString("env.APACHE_BAM_DIR")
-  val TEMP_BAM_DIR = ConfigFactory.load().getString("env.TEMP_BAM_DIR")
+  val TEMP_BAM_DIR = Paths.get(ConfigFactory.load().getString("env.TEMP_BAM_DIR")).toAbsolutePath.toString
 
   /* Return the file names scorresponding to this key */
   def getBamNames(key: String) : List[String] = {
@@ -63,7 +63,7 @@ class BamController @Inject()(db: Database) extends Controller {
    * Return the BAM text as output by "samtools view -hb <filename> <region>".
    * It is encoded in base64 because transfers have to be ascii (?).
    */
-  def read(key: String, region: String) = Action {
+  def read(key: String, region: String, description: Option[String]) = Action {
     val filename = getBamNames(key).head
     val bam = Paths.get(BAM_PATH, filename)
     val command = s"samtools view -hb $bam $region" #| "base64"
@@ -76,7 +76,7 @@ class BamController @Inject()(db: Database) extends Controller {
   /*
    * Return a JSON summarizing the content of this BAM region (1 item per alignment)
    */
-  def view(key: String, region: String) = Action {
+  def view(key: String, region: String, description: Option[String]) = Action {
     val filename = getBamNames(key).head
     val reader: SamReader = SamReaderFactory.makeDefault().open(new File(filename))
     val it = reader.iterator
@@ -101,7 +101,7 @@ class BamController @Inject()(db: Database) extends Controller {
    * The function first extracts the region with "samtools view", writes the result to
    *   the local resource/temp, then creates a symbolic link to it in APACHE_BAM_DIR.
    */
-  def symlink(key: String, region: Option[String]) = Action {
+  def symlink(key: String, region: Option[String], description: Option[String]) = Action {
     val filename = getBamNames(key).head
     val bamOriginal = Paths.get(BAM_PATH, filename)
     val randomName = "_" + (Random.alphanumeric take 19).mkString + ".bam"
@@ -118,8 +118,8 @@ class BamController @Inject()(db: Database) extends Controller {
         val commandExtract = s"samtools view -hb $bamOriginal $s"  #>> new File(dest)
         val commandIndex = s"samtools index $dest"
         println("Extracting region: " + commandExtract.toString)
-        println("Indexing: " + commandIndex.toString)
         commandExtract.!
+        println("Indexing: " + commandIndex.toString)
         commandIndex.!
         Files.createSymbolicLink(
           Paths.get(APACHE_BAM_DIR, randomName),
@@ -140,7 +140,7 @@ class BamController @Inject()(db: Database) extends Controller {
   /*
    * Download the whole file directly
    */
-  def download(key: String, region: String) = Action {
+  def download(key: String, region: String, description: Option[String]) = Action {
     val filename = getBamNames(key).head
     val bam = Paths.get(BAM_PATH, filename).toString
     Ok.sendFile(
