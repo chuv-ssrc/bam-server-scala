@@ -8,7 +8,7 @@ if [ "$#" -lt 5 ]; then
     echo "Usage: deploy.sh <REMOTE> <REMOTE_DIR> <PORT> <SETTINGS> <SECRET>"
     echo "Params:"
     echo "  REMOTE: name of the server, e.g. varapp@varapp.vital-it.ch"
-    echo "  REMOTE_DIR: path on the destination server where to copy the app archive, e.g. /home/varapp/tools/bam-server"
+    echo "  REMOTE_DIR: path on the destination server where to copy the app archive, e.g. /home/varapp/tools/bam-server/"
     echo "  PORT: port to serve the app, e.g. 9000"
     echo "  SETTINGS: settings file, e.g. /home/varapp/tools/bam-server/conf/dev.conf"
     echo ""
@@ -21,20 +21,41 @@ PORT=$3
 SETTINGS=$4
 SECRET=$5
 
+echo ""
+echo "REMOTE: "$REMOTE
+echo "REMOTE_DIR: "$REMOTE_DIR
+echo "PORT: "$PORT
+echo "SETTINGS: "$SETTINGS
+echo "SECRET: "*
+echo ""
+
 activator dist
-source=bam-server-$VERSION-SNAPSHOT
-scp target/universal/$source.zip $REMOTE:$REMOTE_DIR
-pid=$(ssh $REMOTE "
+source="bam-server-$VERSION-SNAPSHOT"
+scp target/universal/$source.zip $REMOTE:$REMOTE_DIR/
+output=$(ssh -n $REMOTE "
+    source ~/.bash_profile
+    java -version | xargs echo 'Java version: '
     cd $REMOTE_DIR
-    # Kill previously running versions
-    for dir in bam-server-*; do
-        cat \$dir/RUNNING_PID | xargs kill
-        rm \$dir/RUNNING_PID
+    echo 'Kill previously running versions'
+    for dir in bam-server-*/ ; do
+        pid_file=\$dir/RUNNING_PID
+        if [ -f \$pid_file ] ; then
+            cat \$pid_file | xargs kill
+            rm \$pid_file
+        fi
     done;
-    unzip $source
+    echo 'Remove existing sources of the same version'
+    if [ -d $source ]; then
+        rm -rf $source
+    fi
+    unzip $source.zip >/dev/null
+    rm $source.zip
     cd $source
-    ./bin/bam-server -v -Dplay.crypto.secret=$SECRET -Dconfig.file=$SETTINGS -Dhttp.port=$PORT
-    cat RUNNING_PID
+    echo 'Serving bam-server on port $PORT...'
+    nohup ./bin/bam-server -v -Dplay.crypto.secret=$SECRET -Dconfig.file=$SETTINGS -Dhttp.port=$PORT >/dev/null 2>&1 &
+    sleep 2
+    cat $REMOTE_DIR/$source/RUNNING_PID | xargs echo '... Running in process'
+    echo ''
 ")
 
-echo "PID="$pid
+echo "SSH output: $output"

@@ -17,6 +17,7 @@ class ApplicationSpec extends PlaySpec with OneAppPerTest {
 
   }
 
+
   "HomeController" should {
 
     "render the index page" in {

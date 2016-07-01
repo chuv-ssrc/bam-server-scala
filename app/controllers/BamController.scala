@@ -1,11 +1,14 @@
 package controllers
 
+import java.util.Calendar
 import javax.inject.Inject
 
 import play.api.mvc._
 import play.api.libs.json.Json._
 import play.api.db._
-//import play.api.http.HttpEntity
+import play.api.Logger
+import play.api.libs.iteratee.Enumerator
+import play.api.http.HttpEntity
 //import play.api.libs.streams.Streams
 //import akka.util.ByteString
 
@@ -30,7 +33,7 @@ class BamReader(val bam:String){
     var i = 0
     val iterate = reader.iterator()
     while(iterate.hasNext && i < 10){
-      System.err.println(iterate.next())
+      println(iterate.next())
       i += 1
     }
   }
@@ -44,7 +47,12 @@ class BamController @Inject()(db: Database) extends Controller {
 
   val BAM_PATH = ConfigFactory.load().getString("env.BAM_PATH")
   val APACHE_BAM_DIR = ConfigFactory.load().getString("env.APACHE_BAM_DIR")
+  val APACHE_BAM_URL = ConfigFactory.load().getString("env.APACHE_BAM_URL")
   val TEMP_BAM_DIR = Paths.get(ConfigFactory.load().getString("env.TEMP_BAM_DIR")).toAbsolutePath.toString
+
+  def samtoolsExists(): Boolean = {
+    "which samtools".! == 0
+  }
 
   /* Return the file names scorresponding to this key */
   def getBamNames(key: String) : List[String] = {
@@ -55,9 +63,17 @@ class BamController @Inject()(db: Database) extends Controller {
       while (res.next()) {
         filenames += res.getString("filename")
       }
-      println("File names: " + filenames.mkString)
+      Logger.info("File names: " + filenames.mkString)
       filenames.toList
     }
+  }
+
+  def cleanupTempBams(): Unit = {
+    val now = Calendar.getInstance().getTime.getTime
+    val HOUR = 3600 * 1000
+    val delta = 24 * HOUR  // number of milliseconds before deleting
+    new File(TEMP_BAM_DIR).listFiles.filter(_.isFile).filter(_.getName.matches(".*?\\.bam.*"))
+      .filter(_.lastModified < now - delta).foreach(_.delete)
   }
 
   /*
@@ -71,6 +87,9 @@ class BamController @Inject()(db: Database) extends Controller {
     val res: String = command.!!
     // TODO: check the format of $region
     Ok(res).as(HTML)
+
+    //val stream = new ByteArrayInputStream(res.getBytes)
+    //Ok.stream(Enumerator.fromStream(stream))
   }
 
 
@@ -106,6 +125,15 @@ class BamController @Inject()(db: Database) extends Controller {
     val filename = getBamNames(key).head
     val bamOriginal: Path = Paths.get(BAM_PATH, filename)
     val randomName = "_" + (Random.alphanumeric take 19).mkString + ".bam"
+    Logger.info(s"/symlink/$key?region=$region")
+
+    if (! samtoolsExists()) {
+      Logger.error("Could not find 'samtools' in $PATH.")
+      Logger.error(System.getenv("PATH"))
+      InternalServerError("Could not find 'samtools' in $PATH.")
+    } else if (filename.isEmpty) {
+      InternalServerError(s"Not corresponding BAM file for key '$key'")
+    } else {
 
     region match {
       // If no region, just add a symlink to the file where Apache can read it
@@ -118,9 +146,9 @@ class BamController @Inject()(db: Database) extends Controller {
         val dest: String = Paths.get(TEMP_BAM_DIR, randomName).toString
         val commandExtract = s"samtools view -hb $bamOriginal $s"  #>> new File(dest)
         val commandIndex = s"samtools index $dest"
-        println("Extracting region: " + commandExtract.toString)
+        Logger.info("Extracting region: " + commandExtract.toString)
         commandExtract.!
-        println("Indexing: " + commandIndex.toString)
+        Logger.info("Indexing: " + commandIndex.toString)
         commandIndex.!
         Files.createSymbolicLink(
           Paths.get(APACHE_BAM_DIR, randomName),
@@ -132,10 +160,10 @@ class BamController @Inject()(db: Database) extends Controller {
         )
     }
 
-    println("Creating symlink to " + Paths.get(APACHE_BAM_DIR, randomName).toString)
-    val url = "http://localhost/bam/" + randomName
+    Logger.info("Creating symlink to " + Paths.get(APACHE_BAM_DIR, randomName).toString)
+    val url = Paths.get(APACHE_BAM_URL, randomName).toString
     Ok(url)
-  }
+  }}
 
 
   /*
