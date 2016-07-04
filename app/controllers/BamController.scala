@@ -298,6 +298,7 @@ class BamController @Inject()(db: Database) extends Controller {
   def downloadRange(key: String, description: Option[String]) = Action {  request =>
     Logger.info("---------------------------------------------------")
     Logger.info(s"/downloadRange/$key")
+    Logger.info(request.toString)
     Logger.info("---------------------------------------------------")
 
     val bamRegex = """^([\w\d:-]+)(.bam){0,1}(.bai|.idx){0,1}$""".r
@@ -327,27 +328,37 @@ class BamController @Inject()(db: Database) extends Controller {
         }
       }
 
+      println(request)
+      println(request.method)
+      println(request.headers.get(RANGE))
       val (start:Long, end:Long) = range.getOrElse(0L, bamLength)
 
       Logger.info(">>>>>>>>  Returning RANGE")
-      sendFile(bam)
+      assert(end-start < 500000, s"Query interval ($start-$end) too big")
+      //sendFile(bam)
 
       val status: Int = if (start != 0 || end != bamLength - 1) PARTIAL_CONTENT else OK
-      val contentLength = if (status == 206) (end - start + 1) else bamLength
+      val contentLength = if (status == PARTIAL_CONTENT) (end - start + 1) else bamLength
 
-      val inputStream = new FileInputStream(bam)
-      val stream = StreamConverters.fromInputStream(() => inputStream)
+      val stream: FileInputStream = new FileInputStream(bam)
+      stream.skip(start)
+      val source = StreamConverters.fromInputStream(() => stream)
 
+      println(status, contentLength, start, end)
+
+      val headers = mutable.Map(
+        CONTENT_TYPE -> "application/octet-stream",
+        ACCEPT_RANGES -> "bytes",
+        CONTENT_LENGTH -> contentLength.toString,
+        CONNECTION -> "keep-alive"
+      )
+      if (status == PARTIAL_CONTENT) {
+        headers += CONTENT_RANGE -> s"bytes $start-$end/$contentLength"
+      }
       Result(
-        header = ResponseHeader(200, Map(
-          CONTENT_TYPE -> "application/octet-stream",
-          ACCEPT_RANGES -> "bytes",
-          CONTENT_LENGTH -> contentLength.toString,
-          CONTENT_RANGE -> s"bytes $start-$end/$contentLength",
-          CONNECTION -> "keep-alive"
-        )),
+        header = ResponseHeader(status, headers.toMap),
         //body = HttpEntity.Strict(ByteString("Hello world!"), Some("text/plain"))
-        body = HttpEntity.Streamed(stream, Some(contentLength), Some("application/octet-stream"))
+        body = HttpEntity.Streamed(source, Some(contentLength), Some("application/octet-stream"))
       )
 
     }
