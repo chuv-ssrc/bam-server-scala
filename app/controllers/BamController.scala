@@ -1,6 +1,6 @@
 package controllers
 
-import java.io.File
+import java.io.{ByteArrayInputStream, File, FileInputStream}
 import java.util.Calendar
 import java.security.MessageDigest
 import javax.inject.Inject
@@ -9,21 +9,19 @@ import play.api.mvc._
 import play.api.libs.json.Json._
 import play.api.db._
 import play.api.Logger
-import play.api.Environment._
 import play.api.libs.iteratee.Enumerator
-import play.api.http.HttpEntity
-//import play.api.libs.streams.Streams
-//import akka.util.ByteString
-
-import java.io.{ByteArrayInputStream, File}
+import play.api.http.{HttpEntity, MimeTypes}
+import play.api.libs.streams.Streams
+import akka.util.ByteString
 import java.nio.file.{Files, Path, Paths}
-//import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets
 
-//import scala.io.Source
-//import scala.collection.mutable
+import akka.stream.scaladsl.StreamConverters
+
+import scala.io.Source
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
-
 import htsjdk.samtools.{SamReader, SamReaderFactory}
 //import htsjdk.samtools.{SAMFileHeader, SAMFileWriter, SAMFileWriterFactory}
 import com.typesafe.config.ConfigFactory
@@ -186,7 +184,7 @@ class BamController @Inject()(db: Database) extends Controller {
 
 
   def sendFile(file:File, name:String="dummy") = {
-    assert(file.exists, s"File not found: ${file.getAbsolutePath.toString}")
+    assert(file.exists, s"File not found: ${file.getAbsolutePath}")
     Ok.sendFile(
       content = file,
       fileName = _ => name,
@@ -216,9 +214,6 @@ class BamController @Inject()(db: Database) extends Controller {
       case bamRegex(root,b,ext) => root
     }
     val queryRegion:String = region match {
-      //case None => ""
-      //case Some(bamRegex(root,null)) => root
-      //case Some(bamRegex(root,ext)) => root
       case "" => ""
       case bamRegex(root,b,null) => root
       case bamRegex(root,b,ext) => root
@@ -228,8 +223,6 @@ class BamController @Inject()(db: Database) extends Controller {
     val bam: Path = Paths.get(BAM_PATH, filename)
     val index: Path = Paths.get(BAM_PATH, filename+".bai")
     val sha:String = hash(queryKey+queryRegion, "SHA")
-    println(BAM_PATH)
-    println(queryKey, queryRegion, sha)
 
     cleanupTempBams(TEMP_BAM_DIR)
     if (! samtoolsExists()) InternalServerError("Could not find 'samtools' in $PATH.")
@@ -238,20 +231,8 @@ class BamController @Inject()(db: Database) extends Controller {
     else if (! index.toFile.exists) InternalServerError(s"BAM index not found on disk")
     else {
 
-
-      val range = request.headers.get(RANGE) match {
-        case None => None
-        case Some(s:String) => s.replaceAll("bytes=", "").split("-").toList match {
-          case rangeStart :: rangeEnd :: Nil => Some(rangeStart.toLong, rangeEnd.toLong)
-          case rangeStart :: Nil => Some(rangeStart.toLong, bam.toFile.length)
-          case _ => None
-        }
-      }
-
-
       region match {
         // If no region, send the whole file
-        //case None =>
         case "" =>
           Logger.info(">>>>>>>>  Returning full BAM")
           sendFile(bam.toFile, sha+".bam")
@@ -272,7 +253,7 @@ class BamController @Inject()(db: Database) extends Controller {
             Logger.info("Indexing: " + commandIndex.toString)
             commandIndex.!
           }
-          if (s.endsWith(".idx") | s.endsWith(".bai")) {
+          if (s.endsWith(".idx") || s.endsWith(".bai")) {
             Logger.info("BAI")
             sendFile(idx.toFile, sha+".bam.bai")
           }
@@ -293,7 +274,6 @@ class BamController @Inject()(db: Database) extends Controller {
     val regex = """^([\w\d:-]+)(.bam){0,1}(.bai|.idx){0,1}$""".r
     val queryKey: String = key match {
       case regex(root,b,ext) => root
-      case regex(root,b, null) => root
       case _ => key
     }
     val bamFilename: String = getBamNames(queryKey).head
@@ -304,22 +284,14 @@ class BamController @Inject()(db: Database) extends Controller {
     else if (! bamPath.toFile.exists) InternalServerError(s"BAM file not found on disk")
     else {
       val indexExists = indexPath.toFile.exists
-      if ((! indexExists) & (! samtoolsExists)) InternalServerError("Could not find 'samtools' in $PATH.")
+      if ((! indexExists) && (! samtoolsExists)) InternalServerError("Could not find 'samtools' in $PATH.")
       else {
         if (! indexExists) {
           indexBam(indexPath.toString)
         }
-
         sendFile(indexPath.toFile)
-
       }
-
-
-
-
     }
-
-    Ok("asdf")
   }
 
 
@@ -330,32 +302,53 @@ class BamController @Inject()(db: Database) extends Controller {
 
     val bamRegex = """^([\w\d:-]+)(.bam){0,1}(.bai|.idx){0,1}$""".r
     val queryKey:String = key match {
-      case bamRegex(root,b,null) => root
       case bamRegex(root,b,ext) => root
+      case _ => key
     }
 
-    val filename = getBamNames(queryKey).head
-    val bam: Path = Paths.get(BAM_PATH, filename)
-    val index: Path = Paths.get(BAM_PATH, filename+".bai")
+    val bamFilename = getBamNames(queryKey).head
+    val bam: File = Paths.get(BAM_PATH, bamFilename).toFile
+    val index: File = Paths.get(BAM_PATH, bamFilename+".bai").toFile
 
     cleanupTempBams(TEMP_BAM_DIR)
     if (! samtoolsExists()) InternalServerError("Could not find 'samtools' in $PATH.")
-    else if (filename.isEmpty) InternalServerError(s"No corresponding BAM file for that key in database")
-    else if (! bam.toFile.exists) InternalServerError(s"BAM file not found on disk")
-    else if (! index.toFile.exists) InternalServerError(s"BAM index not found on disk")
+    else if (bamFilename.isEmpty) InternalServerError(s"No corresponding BAM file for that key in database")
+    else if (! bam.exists) InternalServerError(s"BAM file not found on disk")
+    else if (! index.exists) InternalServerError(s"BAM index not found on disk")
     else {
 
+      val bamLength = bam.length
       val range = request.headers.get(RANGE) match {
         case None => None
         case Some(s:String) => s.replaceAll("bytes=", "").split("-").toList match {
           case rangeStart :: rangeEnd :: Nil => Some(rangeStart.toLong, rangeEnd.toLong)
-          case rangeStart :: Nil => Some(rangeStart.toLong, bam.toFile.length)
+          case rangeStart :: Nil => Some(rangeStart.toLong, bamLength)
           case _ => None
         }
       }
 
+      val (start:Long, end:Long) = range.getOrElse(0L, bamLength)
+
       Logger.info(">>>>>>>>  Returning RANGE")
-      sendFile(bam, filename)
+      sendFile(bam)
+
+      val status: Int = if (start != 0 || end != bamLength - 1) PARTIAL_CONTENT else OK
+      val contentLength = if (status == 206) (end - start + 1) else bamLength
+
+      val inputStream = new FileInputStream(bam)
+      val stream = StreamConverters.fromInputStream(() => inputStream)
+
+      Result(
+        header = ResponseHeader(200, Map(
+          CONTENT_TYPE -> "application/octet-stream",
+          ACCEPT_RANGES -> "bytes",
+          CONTENT_LENGTH -> contentLength.toString,
+          CONTENT_RANGE -> s"bytes $start-$end/$contentLength",
+          CONNECTION -> "keep-alive"
+        )),
+        //body = HttpEntity.Strict(ByteString("Hello world!"), Some("text/plain"))
+        body = HttpEntity.Streamed(stream, Some(contentLength), Some("application/octet-stream"))
+      )
 
     }
   }
