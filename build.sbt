@@ -13,7 +13,8 @@ libraryDependencies ++= Seq(
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0-RC1" % Test,
   "com.github.samtools" % "htsjdk" % "2.1.1",
   "mysql" % "mysql-connector-java" % "5.1.36"
-
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
+
+libraryDependencies += filters
