@@ -1,5 +1,6 @@
 package controllers
 
+import java.io.File
 import java.util.Calendar
 import javax.inject.Inject
 
@@ -46,8 +47,8 @@ class BamReader(val bam:String){
 class BamController @Inject()(db: Database) extends Controller {
 
   val BAM_PATH = ConfigFactory.load().getString("env.BAM_PATH")
-  val APACHE_BAM_DIR = ConfigFactory.load().getString("env.APACHE_BAM_DIR")
-  val APACHE_BAM_URL = ConfigFactory.load().getString("env.APACHE_BAM_URL")
+  val APACHE_TEMP_BAM_DIR = ConfigFactory.load().getString("env.APACHE_TEMP_BAM_DIR")
+  val APACHE_TEMP_BAM_URL = ConfigFactory.load().getString("env.APACHE_TEMP_BAM_URL")
   val TEMP_BAM_DIR = Paths.get(ConfigFactory.load().getString("env.TEMP_BAM_DIR")).toAbsolutePath.toString
 
   def samtoolsExists(): Boolean = {
@@ -68,11 +69,12 @@ class BamController @Inject()(db: Database) extends Controller {
     }
   }
 
-  def cleanupTempBams(): Unit = {
-    val now = Calendar.getInstance().getTime.getTime
-    val HOUR = 3600 * 1000
-    val delta = 24 * HOUR  // number of milliseconds before deleting
-    new File(TEMP_BAM_DIR).listFiles.filter(_.isFile).filter(_.getName.matches(".*?\\.bam.*"))
+  def cleanupTempBams(dir:String): Unit = {
+    val now:Long = Calendar.getInstance().getTime.getTime
+    val HOUR:Long = 3600 * 1000
+    val delta:Long = 1 * HOUR  // number of milliseconds before deleting
+    Logger.info(s"Erasing all files in '$dir' older than ${delta / 1000 / 60} min")
+    new File(dir).listFiles.filter(_.getName.matches(".*?\\.bam.*"))
       .filter(_.lastModified < now - delta).foreach(_.delete)
   }
 
@@ -119,7 +121,7 @@ class BamController @Inject()(db: Database) extends Controller {
   /*
    * Return a URL pointing to a symbolic link to the requested portion of the BAM.
    * The function first extracts the region with "samtools view", writes the result to
-   *   the local resource/temp, then creates a symbolic link to it in APACHE_BAM_DIR.
+   *   the local resource/temp, then creates a symbolic link to it in APACHE_TEMP_BAM_DIR.
    */
   def symlink(key: String, region: Option[String], description: Option[String]) = Action {
     val filename = getBamNames(key).head
@@ -127,18 +129,21 @@ class BamController @Inject()(db: Database) extends Controller {
     val randomName = "_" + (Random.alphanumeric take 19).mkString + ".bam"
     Logger.info(s"/symlink/$key?region=$region")
 
+    cleanupTempBams(TEMP_BAM_DIR)
+    cleanupTempBams(APACHE_TEMP_BAM_DIR)
+
     if (! samtoolsExists()) {
       Logger.error("Could not find 'samtools' in $PATH.")
       Logger.error(System.getenv("PATH"))
       InternalServerError("Could not find 'samtools' in $PATH.")
     } else if (filename.isEmpty) {
-      InternalServerError(s"Not corresponding BAM file for key '$key'")
+      InternalServerError(s"No corresponding BAM file for key '$key'")
     } else {
 
     region match {
       // If no region, just add a symlink to the file where Apache can read it
       case None => Files.createSymbolicLink(
-        Paths.get(APACHE_BAM_DIR, randomName),
+        Paths.get(APACHE_TEMP_BAM_DIR, randomName),
         Paths.get(BAM_PATH, filename)
       )
       // If a region is specified, extract the sub-BAM, write it to a temp directory, then create a symlink to it
@@ -151,17 +156,17 @@ class BamController @Inject()(db: Database) extends Controller {
         Logger.info("Indexing: " + commandIndex.toString)
         commandIndex.!
         Files.createSymbolicLink(
-          Paths.get(APACHE_BAM_DIR, randomName),
+          Paths.get(APACHE_TEMP_BAM_DIR, randomName),
           Paths.get(TEMP_BAM_DIR, randomName)
         )
         Files.createSymbolicLink(
-          Paths.get(APACHE_BAM_DIR, randomName+".bai"),
+          Paths.get(APACHE_TEMP_BAM_DIR, randomName+".bai"),
           Paths.get(TEMP_BAM_DIR, randomName+".bai")
         )
     }
 
-    Logger.info("Creating symlink to " + Paths.get(APACHE_BAM_DIR, randomName).toString)
-    val url = Paths.get(APACHE_BAM_URL, randomName).toString
+    Logger.info("Creating symlink to " + Paths.get(APACHE_TEMP_BAM_DIR, randomName).toString)
+    val url = Paths.get(APACHE_TEMP_BAM_URL, randomName).toString
     Ok(url)
   }}
 
