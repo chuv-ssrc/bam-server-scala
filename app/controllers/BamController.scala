@@ -24,19 +24,6 @@ import htsjdk.samtools.{SamReader, SamReaderFactory}
 import sys.process._
 
 
-class BamReader(val bam:String){
-  val reader:SamReader = SamReaderFactory.makeDefault().open(new File(bam))
-  def head() = {
-    var i = 0
-    val iterate = reader.iterator()
-    while(iterate.hasNext && i < 10){
-      println(iterate.next())
-      i += 1
-    }
-  }
-}
-
-
 /**
   * Created by jdelafon on 06/03/16.
   */
