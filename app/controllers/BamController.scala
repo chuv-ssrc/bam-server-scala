@@ -1,5 +1,8 @@
 package controllers
 
+import utils.Utils._
+import utils.BamUtils._
+
 import java.io.{ByteArrayInputStream, File, FileInputStream}
 import java.util.Calendar
 import java.security.MessageDigest
@@ -50,22 +53,8 @@ class BamController @Inject()(db: Database) extends Controller {
   val APACHE_TEMP_BAM_DIR:String = ConfigFactory.load().getString("env.APACHE_TEMP_BAM_DIR")
   val APACHE_TEMP_BAM_URL:String = ConfigFactory.load().getString("env.APACHE_TEMP_BAM_URL")
   val TEMP_BAM_DIR:String = Paths.get(ConfigFactory.load().getString("env.TEMP_BAM_DIR")).toAbsolutePath.toString
+  val BAM_BAI_REGEX = ".*?\\.bam.*"
 
-  def samtoolsExists(): Boolean = {
-    val exists = "which samtools".! == 0
-    if (! exists) {
-      Logger.error("Could not find 'samtools' in $PATH.")
-      Logger.error(System.getenv("PATH"))
-    }
-    exists
-  }
-
-  def hash(s:String, method:String="SHA") = {
-    MessageDigest.getInstance(method).digest((s).getBytes)
-      .map(0xFF & _).map { "%02x".format(_) }.foldLeft(""){_ + _}
-  }
-
-  def randomBamName(): String = "_" + (Random.alphanumeric take 19).mkString + ".bam"
 
   /* Return the file names scorresponding to this key */
   def getBamNames(key: String) : List[String] = {
@@ -81,14 +70,6 @@ class BamController @Inject()(db: Database) extends Controller {
     }
   }
 
-  def cleanupTempBams(dir:String): Unit = {
-    val now:Long = Calendar.getInstance().getTime.getTime
-    val HOUR:Long = 3600 * 1000
-    val delta:Long = 1 * HOUR  // number of milliseconds before deleting
-    //Logger.info(s"Erasing all files in '$dir' older than ${delta / 1000 / 60} min")
-    new File(dir).listFiles.filter(_.getName.matches(".*?\\.bam.*"))
-      .filter(_.lastModified < now - delta).foreach(_.delete)
-  }
 
   /*
    * Return the BAM text as output by "samtools view -hb <filename> <region>".
@@ -96,14 +77,23 @@ class BamController @Inject()(db: Database) extends Controller {
    */
   def read(key: String, region: String, description: Option[String]) = Action {
     val filename = getBamNames(key).head
-    val bam: Path = Paths.get(BAM_PATH, filename)
-    val command = s"samtools view -hb $bam $region" #| "base64"
+    val bamPath: Path = Paths.get(BAM_PATH, filename)
+    val command = s"samtools view -hb $bamPath $region" #| "base64"
     val res: String = command.!!
     // TODO: check the format of $region
-    Ok(res).as(HTML)
-
-    //val stream = new ByteArrayInputStream(res.getBytes)
-    //Ok.stream(Enumerator.fromStream(stream))
+    //Ok(res).as(HTML)
+    val bam = bamPath.toFile
+    val stream: FileInputStream = new FileInputStream(bam)
+    val source = StreamConverters.fromInputStream(() => stream)
+    val contentLength = bam.length
+    Result(
+      header = ResponseHeader(OK, Map(
+        CONTENT_TYPE -> "application/octet-stream",
+        CONTENT_LENGTH -> contentLength.toString,
+        CONNECTION -> "keep-alive"
+      )),
+      body = HttpEntity.Streamed(source, Some(contentLength), Some("application/octet-stream"))
+    )
   }
 
 
@@ -129,11 +119,6 @@ class BamController @Inject()(db: Database) extends Controller {
     Ok(toJson(reads))
   }
 
-  def indexBam(bamFilename:String): Unit = {
-    val commandIndex = s"samtools index $bamFilename"
-    Logger.info("Indexing: " + commandIndex.toString)
-    commandIndex.!
-  }
 
   /*
    * Return a URL pointing to a symbolic link to the requested portion of the BAM.
@@ -141,13 +126,16 @@ class BamController @Inject()(db: Database) extends Controller {
    *   the local resource/temp, then creates a symbolic link to it in APACHE_TEMP_BAM_DIR.
    */
   def symlink(key: String, region: Option[String], description: Option[String]) = Action {
+
+    def randomBamName(): String = "_" + (Random.alphanumeric take 19).mkString + ".bam"
+
     Logger.info(s"/symlink/$key?region=$region")
     val filename = getBamNames(key).head
     val bamOriginal: Path = Paths.get(BAM_PATH, filename)
     val randomName = randomBamName()
 
-    cleanupTempBams(TEMP_BAM_DIR)
-    cleanupTempBams(APACHE_TEMP_BAM_DIR)
+    cleanupOldTempFiles(TEMP_BAM_DIR,  regex = BAM_BAI_REGEX)
+    cleanupOldTempFiles(APACHE_TEMP_BAM_DIR, regex = BAM_BAI_REGEX)
 
     if (! samtoolsExists()) InternalServerError("Could not find 'samtools' in $PATH.")
     else if (filename.isEmpty) InternalServerError(s"No corresponding BAM file for key '$key'")
@@ -224,7 +212,7 @@ class BamController @Inject()(db: Database) extends Controller {
     val index: Path = Paths.get(BAM_PATH, filename+".bai")
     val sha:String = hash(queryKey+queryRegion, "SHA")
 
-    cleanupTempBams(TEMP_BAM_DIR)
+    cleanupOldTempFiles(TEMP_BAM_DIR, regex = BAM_BAI_REGEX)
     if (! samtoolsExists()) InternalServerError("Could not find 'samtools' in $PATH.")
     else if (filename.isEmpty) InternalServerError(s"No corresponding BAM file for that key in database")
     else if (! bam.toFile.exists) InternalServerError(s"BAM file not found on disk")
@@ -311,9 +299,7 @@ class BamController @Inject()(db: Database) extends Controller {
     val bam: File = Paths.get(BAM_PATH, bamFilename).toFile
     val index: File = Paths.get(BAM_PATH, bamFilename+".bai").toFile
 
-    cleanupTempBams(TEMP_BAM_DIR)
-    if (! samtoolsExists()) InternalServerError("Could not find 'samtools' in $PATH.")
-    else if (bamFilename.isEmpty) InternalServerError(s"No corresponding BAM file for that key in database")
+    if (bamFilename.isEmpty) InternalServerError(s"No corresponding BAM file for that key in database")
     else if (! bam.exists) InternalServerError(s"BAM file not found on disk")
     else if (! index.exists) InternalServerError(s"BAM index not found on disk")
     else {
@@ -327,15 +313,10 @@ class BamController @Inject()(db: Database) extends Controller {
           case _ => None
         }
       }
-
-      println(request)
-      println(request.method)
-      println(request.headers.get(RANGE))
       val (start:Long, end:Long) = range.getOrElse(0L, bamLength)
 
       Logger.info(">>>>>>>>  Returning RANGE")
       assert(end-start < 500000, s"Query interval ($start-$end) too big")
-      //sendFile(bam)
 
       val status: Int = if (start != 0 || end != bamLength - 1) PARTIAL_CONTENT else OK
       val contentLength = if (status == PARTIAL_CONTENT) (end - start + 1) else bamLength
@@ -343,8 +324,6 @@ class BamController @Inject()(db: Database) extends Controller {
       val stream: FileInputStream = new FileInputStream(bam)
       stream.skip(start)
       val source = StreamConverters.fromInputStream(() => stream)
-
-      println(status, contentLength, start, end)
 
       val headers = mutable.Map(
         CONTENT_TYPE -> "application/octet-stream",
@@ -357,7 +336,6 @@ class BamController @Inject()(db: Database) extends Controller {
       }
       Result(
         header = ResponseHeader(status, headers.toMap),
-        //body = HttpEntity.Strict(ByteString("Hello world!"), Some("text/plain"))
         body = HttpEntity.Streamed(source, Some(contentLength), Some("application/octet-stream"))
       )
 
