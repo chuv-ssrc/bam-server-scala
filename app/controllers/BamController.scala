@@ -2,32 +2,25 @@ package controllers
 
 import utils.Utils._
 import utils.BamUtils._
+import utils.Constants._
 
-import java.io.{ByteArrayInputStream, File, FileInputStream}
-import java.util.Calendar
-import java.security.MessageDigest
 import javax.inject.Inject
+import java.io.{File, FileInputStream}
+import java.nio.file.{Files, Path, Paths}
 
 import play.api.mvc._
 import play.api.libs.json.Json._
 import play.api.db._
 import play.api.Logger
-import play.api.libs.iteratee.Enumerator
 import play.api.http.{HttpEntity, MimeTypes}
-import play.api.libs.streams.Streams
-import akka.util.ByteString
-import java.nio.file.{Files, Path, Paths}
-import java.nio.charset.StandardCharsets
 
-import akka.stream.scaladsl.StreamConverters
-
-import scala.io.Source
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
+import akka.stream.scaladsl.StreamConverters
+
 import htsjdk.samtools.{SamReader, SamReaderFactory}
 //import htsjdk.samtools.{SAMFileHeader, SAMFileWriter, SAMFileWriterFactory}
-import com.typesafe.config.ConfigFactory
 import sys.process._
 
 
@@ -49,14 +42,9 @@ class BamReader(val bam:String){
   */
 class BamController @Inject()(db: Database) extends Controller {
 
-  val BAM_PATH:String = ConfigFactory.load().getString("env.BAM_PATH")
-  val APACHE_TEMP_BAM_DIR:String = ConfigFactory.load().getString("env.APACHE_TEMP_BAM_DIR")
-  val APACHE_TEMP_BAM_URL:String = ConfigFactory.load().getString("env.APACHE_TEMP_BAM_URL")
-  val TEMP_BAM_DIR:String = Paths.get(ConfigFactory.load().getString("env.TEMP_BAM_DIR")).toAbsolutePath.toString
-  val BAM_BAI_REGEX = ".*?\\.bam.*"
-
-
-  /* Return the file names scorresponding to this key */
+  /*
+   * Return the file names scorresponding to this key in the database
+   */
   def getBamNames(key: String) : List[String] = {
     db.withConnection { conn =>
       val cursor = conn.createStatement
@@ -81,19 +69,24 @@ class BamController @Inject()(db: Database) extends Controller {
     val command = s"samtools view -hb $bamPath $region" #| "base64"
     val res: String = command.!!
     // TODO: check the format of $region
-    //Ok(res).as(HTML)
-    val bam = bamPath.toFile
-    val stream: FileInputStream = new FileInputStream(bam)
-    val source = StreamConverters.fromInputStream(() => stream)
-    val contentLength = bam.length
-    Result(
-      header = ResponseHeader(OK, Map(
-        CONTENT_TYPE -> "application/octet-stream",
-        CONTENT_LENGTH -> contentLength.toString,
-        CONNECTION -> "keep-alive"
-      )),
-      body = HttpEntity.Streamed(source, Some(contentLength), Some("application/octet-stream"))
-    )
+    Ok(res).as(HTML)
+
+    //import play.api.libs.streams.Streams
+    //import akka.util.ByteString
+    // import java.io.ByteArrayInputStream
+
+    //val bam = bamPath.toFile
+    //val stream: FileInputStream = new FileInputStream(bam)
+    //val source = StreamConverters.fromInputStream(() => stream)
+    //val contentLength = bam.length
+    //Result(
+    //  header = ResponseHeader(OK, Map(
+    //    CONTENT_TYPE -> "application/octet-stream",
+    //    CONTENT_LENGTH -> contentLength.toString,
+    //    CONNECTION -> "keep-alive"
+    //  )),
+    //  body = HttpEntity.Streamed(source, Some(contentLength), Some("application/octet-stream"))
+    //)
   }
 
 
@@ -171,22 +164,6 @@ class BamController @Inject()(db: Database) extends Controller {
   }}
 
 
-  def sendFile(file:File, name:String="dummy") = {
-    assert(file.exists, s"File not found: ${file.getAbsolutePath}")
-    Ok.sendFile(
-      content = file,
-      fileName = _ => name,
-      inline = true
-    )
-      //.as(HTML)
-      .withHeaders(
-      CONNECTION -> "keep-alive",
-      ACCEPT_RANGES -> "bytes",
-      ACCEPT_ENCODING -> "gzip, deflate, sdch",
-      ACCEPT_LANGUAGE -> "en-US,en;q=0.8,fr;q=0.6,ru;q=0.4,de;q=0.2,pt;q=0.2"
-    )
-  }
-
   /*
    * Download the file directly
    */
@@ -223,7 +200,7 @@ class BamController @Inject()(db: Database) extends Controller {
         // If no region, send the whole file
         case "" =>
           Logger.info(">>>>>>>>  Returning full BAM")
-          sendFile(bam.toFile, sha+".bam")
+          Ok.sendFile(bam.toFile)
 
         // If a region is specified, extract the sub-BAM, write it to a temp directory, and serve it
         //case Some(s: String) =>
@@ -243,11 +220,11 @@ class BamController @Inject()(db: Database) extends Controller {
           }
           if (s.endsWith(".idx") || s.endsWith(".bai")) {
             Logger.info("BAI")
-            sendFile(idx.toFile, sha+".bam.bai")
+            Ok.sendFile(idx.toFile, fileName = _ => sha+"bam.bai")
           }
           else {
             Logger.info("BAM")
-            sendFile(dest.toFile, sha+".bam")
+            Ok.sendFile(dest.toFile, fileName = _ => sha+"bam")
           }
       }
 
@@ -277,7 +254,7 @@ class BamController @Inject()(db: Database) extends Controller {
         if (! indexExists) {
           indexBam(indexPath.toString)
         }
-        sendFile(indexPath.toFile)
+        Ok.sendFile(indexPath.toFile)
       }
     }
   }
