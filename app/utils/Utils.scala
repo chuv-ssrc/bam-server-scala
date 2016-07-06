@@ -1,9 +1,10 @@
 package utils
 
-import java.io.File
+import java.io.{File, FileInputStream}
 import java.security.MessageDigest
 import java.util.Calendar
 
+import akka.stream.scaladsl.StreamConverters
 import play.api.Logger
 
 import sys.process._
@@ -27,6 +28,17 @@ object Utils {
     //Logger.info(s"Erasing all files in '$dir' older than ${delta / 1000 / 60} min")
     new File(dir).listFiles.filter(_.getName.matches(".*?\\.bam.*"))
       .filter(_.lastModified < now - delta).foreach(_.delete)
+  }
+
+  /*
+   * Remove '.bam' or '.bam.bai' extensions from the input string
+   */
+  def withoutBamExtension(s: String) : String = {
+    val queryKey:String = s match {
+      case Constants.KEY_REGEX(root,b,ext) => root
+      case _ => s
+    }
+    queryKey
   }
 
 }

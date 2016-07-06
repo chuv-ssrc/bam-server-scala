@@ -18,5 +18,6 @@ object Constants {
   val APACHE_TEMP_BAM_URL:String = getConfigValue("env.APACHE_TEMP_BAM_URL")
   val TEMP_BAM_DIR:String = getConfigValue("env.TEMP_BAM_DIR")
   val BAM_BAI_REGEX = ".*?\\.bam.*"
+  val KEY_REGEX = """^([\w\d:.-]+?)(.bam){0,1}(.bai|.idx){0,1}$""".r
 
 }

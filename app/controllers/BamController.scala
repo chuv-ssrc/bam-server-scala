@@ -3,7 +3,6 @@ package controllers
 import utils.Utils._
 import utils.BamUtils._
 import utils.Constants._
-
 import javax.inject.Inject
 import java.io.{File, FileInputStream}
 import java.nio.file.{Files, Path, Paths}
@@ -12,15 +11,14 @@ import play.api.mvc._
 import play.api.libs.json.Json._
 import play.api.db._
 import play.api.Logger
-import play.api.http.{HttpEntity, MimeTypes}
+import play.api.http.HttpEntity
 
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.util.Random
 import akka.stream.scaladsl.StreamConverters
-
 import htsjdk.samtools.{SamReader, SamReaderFactory}
-//import htsjdk.samtools.{SAMFileHeader, SAMFileWriter, SAMFileWriterFactory}
+
 import sys.process._
 
 
@@ -32,7 +30,7 @@ class BamController @Inject()(db: Database) extends Controller {
   /*
    * Return the file names scorresponding to this key in the database
    */
-  def getBamNames(key: String) : List[String] = {
+  def getBamName(key: String) : String = {
     db.withConnection { conn =>
       val cursor = conn.createStatement
       val res = cursor.executeQuery("SELECT `key`,`filename` FROM bam WHERE `key`='"+key+"';")
@@ -40,8 +38,8 @@ class BamController @Inject()(db: Database) extends Controller {
       while (res.next()) {
         filenames += res.getString("filename")
       }
-      Logger.info("File names: " + filenames.mkString)
-      filenames.toList
+      Logger.debug(s"File names for key $key: ${filenames.mkString}")
+      if (filenames.isEmpty) "" else filenames.head
     }
   }
 
@@ -51,16 +49,15 @@ class BamController @Inject()(db: Database) extends Controller {
    * It is encoded in base64 because transfers have to be ascii (?).
    */
   def read(key: String, region: String, description: Option[String]) = Action {
-    val filename = getBamNames(key).head
+    val filename = getBamName(key)
     val bamPath: Path = Paths.get(BAM_PATH, filename)
     val command = s"samtools view -hb $bamPath $region" #| "base64"
     val res: String = command.!!
-    // TODO: check the format of $region
     Ok(res).as(HTML)
 
     //import play.api.libs.streams.Streams
     //import akka.util.ByteString
-    // import java.io.ByteArrayInputStream
+    //import java.io.ByteArrayInputStream
 
     //val bam = bamPath.toFile
     //val stream: FileInputStream = new FileInputStream(bam)
@@ -68,11 +65,11 @@ class BamController @Inject()(db: Database) extends Controller {
     //val contentLength = bam.length
     //Result(
     //  header = ResponseHeader(OK, Map(
-    //    CONTENT_TYPE -> "application/octet-stream",
+    //    CONTENT_TYPE -> BINARY,
     //    CONTENT_LENGTH -> contentLength.toString,
     //    CONNECTION -> "keep-alive"
     //  )),
-    //  body = HttpEntity.Streamed(source, Some(contentLength), Some("application/octet-stream"))
+    //  body = HttpEntity.Streamed(source, Some(contentLength), Some(BINARY))
     //)
   }
 
@@ -81,7 +78,7 @@ class BamController @Inject()(db: Database) extends Controller {
    * Return a JSON summarizing the content of this BAM region (1 item per alignment)
    */
   def view(key: String, region: String, description: Option[String]) = Action {
-    val filename = getBamNames(key).head
+    val filename = getBamName(key)
     val reader: SamReader = SamReaderFactory.makeDefault().open(new File(filename))
     val it = reader.iterator
     var reads = new ArrayBuffer[Map[String, String]]
@@ -110,7 +107,7 @@ class BamController @Inject()(db: Database) extends Controller {
     def randomBamName(): String = "_" + (Random.alphanumeric take 19).mkString + ".bam"
 
     Logger.info(s"/symlink/$key?region=$region")
-    val filename = getBamNames(key).head
+    val filename = getBamName(key)
     val bamOriginal: Path = Paths.get(BAM_PATH, filename)
     val randomName = randomBamName()
 
@@ -160,18 +157,17 @@ class BamController @Inject()(db: Database) extends Controller {
     Logger.info(s"/download/$key?region=$region")
     Logger.info("---------------------------------------------------")
 
-    val bamRegex = """^([\w\d:-]+)(.bam){0,1}(.bai|.idx){0,1}$""".r
     val queryKey:String = key match {
-      case bamRegex(root,b,null) => root
-      case bamRegex(root,b,ext) => root
+      case KEY_REGEX(root,b,null) => root
+      case KEY_REGEX(root,b,ext) => root
     }
     val queryRegion:String = region match {
       case "" => ""
-      case bamRegex(root,b,null) => root
-      case bamRegex(root,b,ext) => root
+      case KEY_REGEX(root,b,null) => root
+      case KEY_REGEX(root,b,ext) => root
     }
 
-    val filename = getBamNames(queryKey).head
+    val filename = getBamName(queryKey)
     val bam: Path = Paths.get(BAM_PATH, filename)
     val index: Path = Paths.get(BAM_PATH, filename+".bai")
     val sha:String = hash(queryKey+queryRegion, "SHA")
@@ -223,12 +219,8 @@ class BamController @Inject()(db: Database) extends Controller {
     Logger.info("---------------------------------------------------")
     Logger.info(s"/downloadIndex/$key")
     Logger.info("---------------------------------------------------")
-    val regex = """^([\w\d:-]+)(.bam){0,1}(.bai|.idx){0,1}$""".r
-    val queryKey: String = key match {
-      case regex(root,b,ext) => root
-      case _ => key
-    }
-    val bamFilename: String = getBamNames(queryKey).head
+    val queryKey: String = withoutBamExtension(key)
+    val bamFilename: String = getBamName(queryKey)
     val bamPath: Path = Paths.get(BAM_PATH, bamFilename)
     val indexPath: Path = Paths.get(BAM_PATH, bamFilename+".bai")
 
@@ -253,13 +245,8 @@ class BamController @Inject()(db: Database) extends Controller {
     Logger.info(request.toString)
     Logger.info("---------------------------------------------------")
 
-    val bamRegex = """^([\w\d:-]+)(.bam){0,1}(.bai|.idx){0,1}$""".r
-    val queryKey:String = key match {
-      case bamRegex(root,b,ext) => root
-      case _ => key
-    }
-
-    val bamFilename = getBamNames(queryKey).head
+    val queryKey: String = withoutBamExtension(key)
+    val bamFilename: String = getBamName(queryKey)
     val bam: File = Paths.get(BAM_PATH, bamFilename).toFile
     val index: File = Paths.get(BAM_PATH, bamFilename+".bai").toFile
 
@@ -290,7 +277,7 @@ class BamController @Inject()(db: Database) extends Controller {
       val source = StreamConverters.fromInputStream(() => stream)
 
       val headers = mutable.Map(
-        CONTENT_TYPE -> "application/octet-stream",
+        CONTENT_TYPE -> BINARY,
         ACCEPT_RANGES -> "bytes",
         CONTENT_LENGTH -> contentLength.toString,
         CONNECTION -> "keep-alive"
@@ -300,7 +287,7 @@ class BamController @Inject()(db: Database) extends Controller {
       }
       Result(
         header = ResponseHeader(status, headers.toMap),
-        body = HttpEntity.Streamed(source, Some(contentLength), Some("application/octet-stream"))
+        body = HttpEntity.Streamed(source, Some(contentLength), Some(BINARY))
       )
 
     }
