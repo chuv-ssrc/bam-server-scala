@@ -23,7 +23,7 @@ GET /symlink/:key                       controllers.BamSymlinkController.symlink
 GET /read/:key                          controllers.BamReadController.read(key: String, region: String ?= "", desc: Option[String])
 
 # Return JSON-formatted reads
-GET /view/:key                           controllers.BamViewController.view(key: String, region: String ?= "", desc: Option[String])
+GET /view/:key                          controllers.BamViewController.view(key: String, region: String ?= "", desc: Option[String])
 
 
 

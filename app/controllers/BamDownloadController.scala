@@ -38,7 +38,7 @@ class BamDownloadController @Inject()(db: Database) extends BamController(db) {
         if (! indexExists) {
           indexBam(indexPath.toString)
         }
-        Ok.sendFile(indexPath.toFile, inline=true)
+        //Ok.sendFile(indexPath.toFile, inline=true)
         RangeResult.ofFile(indexPath.toFile, request.headers.get(RANGE), Some(BINARY))
       }
     }
@@ -75,6 +75,7 @@ class BamDownloadController @Inject()(db: Database) extends BamController(db) {
   /**
     * Download the part of the BAM file corresponding to this region.
     * Writes temporarily the extracted region to `env.TEMP_BAM_DIR`.
+    * Old "classic" version that does it with samtools.
     */
   def download(key: String, region: String, description: Option[String]) = Action {  request =>
     Logger.info("---------------------------------------------------")
