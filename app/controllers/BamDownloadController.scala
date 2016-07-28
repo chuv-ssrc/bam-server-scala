@@ -1,19 +1,15 @@
 package controllers
 
-import java.io.{File, FileInputStream}
+import java.io.File
 import java.nio.file.{Path, Paths}
 import javax.inject.Inject
 
-import akka.stream.scaladsl.StreamConverters
 import play.api.Logger
 import play.api.db.Database
-import play.api.http.HttpEntity
-import play.api.mvc.{Action, ResponseHeader, Result}
+import play.api.mvc.{Action, RangeResult}
 import utils.BamUtils._
 import utils.Constants._
 import utils.Utils._
-
-import scala.collection.mutable
 
 import sys.process._
 
@@ -24,7 +20,7 @@ class BamDownloadController @Inject()(db: Database) extends BamController(db) {
   /**
     * Download the BAM index
     */
-  def downloadIndex(key: String, description: Option[String]) = Action {
+  def downloadIndex(key: String, description: Option[String]) = Action { request =>
     Logger.info("---------------------------------------------------")
     Logger.info(s"/downloadIndex/$key")
     Logger.info("---------------------------------------------------")
@@ -43,9 +39,7 @@ class BamDownloadController @Inject()(db: Database) extends BamController(db) {
           indexBam(indexPath.toString)
         }
         Ok.sendFile(indexPath.toFile, inline=true)
-          //.withHeaders(CACHE_CONTROL -> "max-age=3600",
-          //             CONTENT_DISPOSITION -> s"attachment; filename=${bamFilename}.bai",
-          //             CONTENT_TYPE -> BINARY);
+        RangeResult.ofFile(indexPath.toFile, request.headers.get(RANGE), Some(BINARY))
       }
     }
   }
@@ -61,8 +55,7 @@ class BamDownloadController @Inject()(db: Database) extends BamController(db) {
     */
   def downloadRange(key: String, description: Option[String]) = Action {  request =>
     Logger.info("---------------------------------------------------")
-    Logger.info(s"/downloadRange/$key")
-    Logger.info(request.toString)
+    Logger.info("Request: " + request.toString)
     Logger.info("---------------------------------------------------")
 
     val queryKey: String = withoutBamExtension(key)
@@ -74,42 +67,7 @@ class BamDownloadController @Inject()(db: Database) extends BamController(db) {
     else if (! bam.exists) InternalServerError(s"BAM file not found on disk")
     else if (! index.exists) InternalServerError(s"BAM index not found on disk")
     else {
-
-      val bamLength = bam.length
-      val range = request.headers.get(RANGE) match {
-        case None => None
-        case Some(s:String) => s.replaceAll("bytes=", "").split("-").toList match {
-          case rangeStart :: rangeEnd :: Nil => Some(Math.max(rangeStart.toLong,0), Math.min(rangeEnd.toLong, bamLength))
-          case rangeStart :: Nil => Some(Math.max(rangeStart.toLong,0), bamLength)
-          case _ => None
-        }
-      }
-      val (start:Long, end:Long) = range.getOrElse(0L, bamLength)
-
-      Logger.info(">>>>>>>>  Returning RANGE")
-      //assert(end-start < 500000, s"Query interval ($start-$end) too big")
-
-      val status: Int = if (start != 0 || end != bamLength - 1) PARTIAL_CONTENT else OK
-      val contentLength = if (status == PARTIAL_CONTENT) (end - start + 1) else bamLength
-
-      val stream: FileInputStream = new FileInputStream(bam)
-      stream.skip(start)
-      val source = StreamConverters.fromInputStream(() => stream)
-
-      val headers = mutable.Map(
-        CONTENT_TYPE -> BINARY,
-        ACCEPT_RANGES -> "bytes",
-        CONTENT_LENGTH -> contentLength.toString,
-        CONNECTION -> "keep-alive"
-      )
-      if (status == PARTIAL_CONTENT) {
-        headers += CONTENT_RANGE -> s"bytes $start-$end/$contentLength"
-      }
-      Result(
-        header = ResponseHeader(status, headers.toMap),
-        body = HttpEntity.Streamed(source, Some(contentLength), Some(BINARY))
-      )
-
+      RangeResult.ofFile(bam, request.headers.get(RANGE), Some(BINARY))
     }
   }
 

@@ -1,3 +1,4 @@
+import akka.stream.Materializer
 import org.scalatestplus.play._
 import play.api.test._
 import play.api.test.Helpers._
@@ -9,12 +10,12 @@ import play.api.test.Helpers._
  */
 class ApplicationSpec extends PlaySpec with OneAppPerTest {
 
-  val KEY = "1234"
+  val KEY = "asdf"
 
   "Routes" should {
 
     "send 404 on a bad request" in  {
-      route(app, FakeRequest(GET, "/fake")).map(status(_)) mustBe Some(NOT_FOUND)
+      route(app, FakeRequest(GET, "/fake")).map(status) mustBe Some(NOT_FOUND)
     }
 
   }
@@ -34,7 +35,8 @@ class ApplicationSpec extends PlaySpec with OneAppPerTest {
   "BamDownloadController" should {
 
     "return the whole index if the key has suffix '.bai' in downloadRange" in {
-      val request = FakeRequest(GET, s"/downloadRange/${KEY}.bai")
+      implicit lazy val materializer: Materializer = app.materializer
+      val request = FakeRequest(GET, s"/downloadRange/$KEY.bai")
       val indexResponse = route(app, request).get
 
       status(indexResponse) mustBe OK
@@ -42,25 +44,45 @@ class ApplicationSpec extends PlaySpec with OneAppPerTest {
     }
 
     "return partial BAM content according to the Range header, and status 206" in {
-      val request = FakeRequest(GET, s"/downloadRange/${KEY}")
+      implicit lazy val materializer: Materializer = app.materializer
+      val request = FakeRequest(GET, s"/downloadRange/$KEY")
       .withHeaders(
-        RANGE -> "bytes=0-10",
-        CONNECTION -> "keep-alive"
+        RANGE -> "bytes=50-150",
+        CONNECTION -> "keep-alive",
+        ACCEPT -> "*/*"
       )
       val indexResponse = route(app, request).get
       status(indexResponse) mustBe PARTIAL_CONTENT
       contentType(indexResponse) mustBe Some(BINARY)
+      contentAsBytes(indexResponse).length mustEqual 101
     }
 
     "return whole BAM content if Range is large enough, and status 200" in {
-      val request = FakeRequest(GET, s"/downloadRange/${KEY}")
+      implicit lazy val materializer: Materializer = app.materializer
+      val request = FakeRequest(GET, s"/downloadRange/$KEY")
         .withHeaders(
           RANGE -> "bytes=0-21793",
-          CONNECTION -> "keep-alive"
+          CONNECTION -> "keep-alive",
+          ACCEPT -> "*/*"
         )
       val indexResponse = route(app, request).get
-      status(indexResponse) mustBe OK
+      status(indexResponse) mustBe PARTIAL_CONTENT
       contentType(indexResponse) mustBe Some(BINARY)
+      contentAsBytes(indexResponse).length mustEqual 21794
+    }
+
+    "return whold BAM content if Range is too big" in {
+      implicit lazy val materializer: Materializer = app.materializer
+      val request = FakeRequest(GET, s"/downloadRange/$KEY")
+        .withHeaders(
+          RANGE -> "bytes=0-100000",
+          CONNECTION -> "keep-alive",
+          ACCEPT -> "*/*"
+        )
+      val indexResponse = route(app, request).get
+      status(indexResponse) mustBe PARTIAL_CONTENT
+      contentType(indexResponse) mustBe Some(BINARY)
+      contentAsBytes(indexResponse).length mustEqual 21794
     }
 
 
