@@ -1,17 +1,14 @@
 package utils
 
-import java.io.{File, FileInputStream}
+import java.io.File
 import java.security.MessageDigest
 import java.util.Calendar
 
-import akka.stream.scaladsl.StreamConverters
 import play.api.Logger
 
 import sys.process._
 
-/**
-  * Created by jdelafon on 05/07/16.
-  */
+
 object Utils {
 
   def hash(s:String, method:String="SHA") = {
@@ -19,7 +16,7 @@ object Utils {
       .map(0xFF & _).map { "%02x".format(_) }.foldLeft(""){_ + _}
   }
 
-  /* Delete all files in *dir* matching this *regex* that are older than *seconds*
+  /** Delete all files in *dir* matching this *regex* that are older than *seconds*
    * Default is one hour, all extensions.
    */
   def cleanupOldTempFiles(dir:String, seconds:Long=3600, regex:String=".*"): Unit = {
@@ -30,7 +27,7 @@ object Utils {
       .filter(_.lastModified < now - delta).foreach(_.delete)
   }
 
-  /*
+  /**
    * Remove '.bam' or '.bam.bai' extensions from the input string
    */
   def withoutBamExtension(s: String) : String = {
@@ -46,6 +43,10 @@ object Utils {
 
 object BamUtils {
 
+  /**
+    * Return whether samtools is found in $PATH
+    * @return Boolean
+    */
   def samtoolsExists(): Boolean = {
     val exists = "which samtools".! == 0
     if (! exists) {
@@ -55,6 +56,10 @@ object BamUtils {
     exists
   }
 
+  /**
+    * Run samtools index on the give bam file.
+    * @param bamFilename: BAM file name
+    */
   def indexBam(bamFilename:String): Unit = {
     val commandIndex = s"samtools index $bamFilename"
     Logger.info("Indexing: " + commandIndex.toString)

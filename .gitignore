@@ -9,6 +9,9 @@ target
 /.settings
 /RUNNING_PID
 
+# Scala worksheet
+*.sc
+
 activator*
 
 *.bam*

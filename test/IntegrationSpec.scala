@@ -5,6 +5,9 @@ import play.api.test.Helpers._
 /**
  * add your integration spec here.
  * An integration test will fire up a whole play application in a real (or headless) browser
+ *
+ * Docs:
+ * https://www.playframework.com/documentation/2.5.4/ScalaFunctionalTestingWithScalaTest#Writing-functional-tests-with-ScalaTest
  */
 class IntegrationSpec extends PlaySpec with OneServerPerTest with OneBrowserPerTest with HtmlUnitFactory {
 
@@ -14,7 +17,7 @@ class IntegrationSpec extends PlaySpec with OneServerPerTest with OneBrowserPerT
 
       go to ("http://localhost:" + port)
 
-      pageSource must include ("Your new application is ready.")
+      pageSource must include ("BAM server operational.")
     }
   }
 }

@@ -5,11 +5,12 @@ VERSION=1.0
 
 if [ "$#" -lt 5 ]; then
     echo ""
-    echo "Usage: deploy.sh <REMOTE> <REMOTE_DIR> <PORT> <SETTINGS> <SECRET>"
+    echo "Usage: deploy.sh <REMOTE> <REMOTE_DIR> <PORT> <PORT_HTTPS> <SETTINGS> <SECRET>"
     echo "Params:"
     echo "  REMOTE: name of the server, e.g. varapp@varapp.vital-it.ch"
     echo "  REMOTE_DIR: path on the destination server where to copy the app archive, e.g. /home/varapp/tools/bam-server/"
-    echo "  PORT: port to serve the app, e.g. 9000"
+    echo "  PORT: HTTP port to serve the app, e.g. 9000. Set to 'disabled' to not use HTTP."
+    echo "  PORT_HTTPS: HTTPS port to serve the app, e.g. 9443. Set to 'disabled' to not use HTTPS."
     echo "  SETTINGS: settings file, e.g. /home/varapp/tools/bam-server/conf/dev.conf"
     echo ""
     exit 1
@@ -18,13 +19,15 @@ fi;
 REMOTE=$1
 REMOTE_DIR=$2
 PORT=$3
-SETTINGS=$4
-SECRET=$5
+PORT_HTTPS=$4
+SETTINGS=$5
+SECRET=$6
 
 echo ""
 echo "REMOTE: "$REMOTE
 echo "REMOTE_DIR: "$REMOTE_DIR
 echo "PORT: "$PORT
+echo "PORT_HTTPS: "$PORT_HTTPS
 echo "SETTINGS: "$SETTINGS
 echo "SECRET: "*
 echo ""
@@ -51,8 +54,14 @@ output=$(ssh -n $REMOTE "
     unzip $source.zip >/dev/null
     rm $source.zip
     cd $source
-    echo 'Serving bam-server on port $PORT...'
-    nohup ./bin/bam-server -v -Dplay.crypto.secret=$SECRET -Dconfig.file=$SETTINGS -Dhttp.port=$PORT >/dev/null 2>&1 &
+    echo 'Serving bam-server on HTTPS port $PORT...'
+    nohup ./bin/bam-server -v \
+        -Dplay.crypto.secret=$SECRET \
+        -Dconfig.file=$SETTINGS \
+        -Dhttp.port=$PORT \
+        -Dhttps.port=$PORT_HTTPS \
+        >/dev/null 2>&1 &
+
     sleep 2
     cat $REMOTE_DIR/$source/RUNNING_PID | xargs echo '... Running in process'
     echo ''
