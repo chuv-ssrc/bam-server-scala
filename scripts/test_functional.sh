@@ -1,0 +1,1 @@
+../dist/scripts/test_functional.sh
