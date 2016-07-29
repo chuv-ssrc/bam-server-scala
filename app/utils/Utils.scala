@@ -44,7 +44,7 @@ object Utils {
 object BamUtils {
 
   /**
-    * Return whether samtools is found in $PATH
+    * Return whether samtools is found in PATH
     * @return Boolean
     */
   def samtoolsExists(): Boolean = {

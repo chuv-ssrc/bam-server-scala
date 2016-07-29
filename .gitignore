@@ -1,6 +1,6 @@
 .DS_Store
 
-logs
+/logs
 target
 /.idea
 /.idea_modules
@@ -8,6 +8,7 @@ target
 /.project
 /.settings
 /RUNNING_PID
+/scripts/private/
 
 # Scala worksheet
 *.sc

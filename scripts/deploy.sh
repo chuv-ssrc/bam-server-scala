@@ -12,6 +12,7 @@ if [ "$#" -lt 5 ]; then
     echo "  PORT: HTTP port to serve the app, e.g. 9000. Set to 'disabled' to not use HTTP."
     echo "  PORT_HTTPS: HTTPS port to serve the app, e.g. 9443. Set to 'disabled' to not use HTTPS."
     echo "  SETTINGS: settings file, e.g. /home/varapp/tools/bam-server/conf/dev.conf"
+    echo "  SECRET: the secret key (overwrites what is defined in SETTINGS)."
     echo ""
     exit 1
 fi;
