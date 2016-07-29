@@ -7,8 +7,6 @@ GET /                                   controllers.HomeController.index
 
 # Download a BAM index
 GET /download/index/:key                controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
-
-# Required by IGV.js that makes two similar queries but one with a '.bai' suffix for th eindex
 GET /download/$key<([\w.]+).bai>        controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
 GET /downloadRange/$key<([\w.]+).bai>   controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
 
