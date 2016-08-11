@@ -55,7 +55,7 @@ output=$(ssh -n $REMOTE "
     unzip $source.zip >/dev/null
     rm $source.zip
     cd $source
-    echo 'Serving bam-server on HTTPS port $PORT...'
+    echo 'Serving bam-server on HTTP : $PORT / HTTPS : $PORT_HTTPS...'
     nohup ./bin/bam-server -v \
         -Dplay.crypto.secret=$SECRET \
         -Dconfig.file=$SETTINGS \

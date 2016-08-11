@@ -22,7 +22,7 @@ class BamDownloadController @Inject()(db: Database) extends BamController(db) {
     */
   def downloadIndex(key: String, description: Option[String]) = Action { request =>
     Logger.info("---------------------------------------------------")
-    Logger.info(s"/downloadIndex/$key")
+    Logger.info("Request: " + request.toString)
     Logger.info("---------------------------------------------------")
     val queryKey: String = withoutBamExtension(key)
     val bamFilename: String = getBamName(queryKey)
@@ -61,11 +61,9 @@ class BamDownloadController @Inject()(db: Database) extends BamController(db) {
     val queryKey: String = withoutBamExtension(key)
     val bamFilename: String = getBamName(queryKey)
     val bam: File = Paths.get(BAM_PATH, bamFilename).toFile
-    val index: File = Paths.get(BAM_PATH, bamFilename+".bai").toFile
 
     if (bamFilename.isEmpty) InternalServerError(s"No corresponding BAM file for that key in database")
     else if (! bam.exists) InternalServerError(s"BAM file not found on disk")
-    else if (! index.exists) InternalServerError(s"BAM index not found on disk")
     else {
       RangeResult.ofFile(bam, request.headers.get(RANGE), Some(BINARY))
     }
