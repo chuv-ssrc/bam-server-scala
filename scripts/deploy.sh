@@ -5,14 +5,13 @@ VERSION=1.0
 
 if [ "$#" -lt 5 ]; then
     echo ""
-    echo "Usage: deploy.sh <REMOTE> <REMOTE_DIR> <PORT> <PORT_HTTPS> <SETTINGS> <SECRET>"
+    echo "Usage: deploy.sh <REMOTE> <REMOTE_DIR> <PORT> <PORT_HTTPS> <SETTINGS>"
     echo "Params:"
     echo "  REMOTE: name of the server, e.g. varapp@varapp.vital-it.ch"
     echo "  REMOTE_DIR: path on the destination server where to copy the app archive, e.g. /home/varapp/tools/bam-server/"
     echo "  PORT: HTTP port to serve the app, e.g. 9000. Set to 'disabled' to not use HTTP."
     echo "  PORT_HTTPS: HTTPS port to serve the app, e.g. 9443. Set to 'disabled' to not use HTTPS."
     echo "  SETTINGS: settings file, e.g. /home/varapp/tools/bam-server/conf/dev.conf"
-    echo "  SECRET: the secret key (overwrites what is defined in SETTINGS)."
     echo ""
     exit 1
 fi;
@@ -30,7 +29,6 @@ echo "REMOTE_DIR: "$REMOTE_DIR
 echo "PORT: "$PORT
 echo "PORT_HTTPS: "$PORT_HTTPS
 echo "SETTINGS: "$SETTINGS
-echo "SECRET: "*
 echo ""
 
 activator dist
@@ -57,7 +55,6 @@ output=$(ssh -n $REMOTE "
     cd $source
     echo 'Serving bam-server on HTTP : $PORT / HTTPS : $PORT_HTTPS...'
     nohup ./bin/bam-server -v \
-        -Dplay.crypto.secret=$SECRET \
         -Dconfig.file=$SETTINGS \
         -Dhttp.port=$PORT \
         -Dhttps.port=$PORT_HTTPS \
