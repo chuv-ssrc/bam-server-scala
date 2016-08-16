@@ -47,7 +47,7 @@ Build the source (to `target/universal/`)::
 
     activator dist
 
-Deployment: copy the built archive to destination, decompress, then
+Deployment: copy the built archive to destination, decompress, then::
 
     ./bin/bam-server -v \
         -Dconfig.file=$SETTINGS \
@@ -56,7 +56,7 @@ Deployment: copy the built archive to destination, decompress, then
 
 See also `/scripts/deploy.sh`.
 
-Test that it works:
+Test that it works::
 
     ./scripts/test_functional.sh
 
@@ -95,7 +95,7 @@ Let `$key` be the BAM secret identifier in the database.
 - GET /view/$key[?region=$region]
 
   Returns the reads for the given region in JSON format.
-  Currently, it looks like this:
+  Currently, it looks like this::
 
     [
       {
