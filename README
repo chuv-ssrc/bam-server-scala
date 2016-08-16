@@ -1,49 +1,113 @@
 
-=================================
+A simple BAM server in Scala
+============================
 
-This file will be packaged with your application when using `activator dist`.
+This small Play application has been built with the purpose of serving BAM files
+for viewing them in IGV.js, while keeping the files secure (since human
+genomic data is very sensible).
 
-There are several demonstration files available in this template.
+It relies on a database with a single table and the following schema:
 
-Controllers
+    CREATE TABLE `bam` (
+        `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        `filename` VARCHAR(255) NOT NULL,
+        `key` VARCHAR(255) NOT NULL,
+        `hash` VARCHAR(255),
+        `description` VARCHAR(500)
+    ) ENGINE=InnoDB;
+
+In other words, to each BAM file `filename` corresponds a secret `key`.
+
+It is not doing any user authentication. It has no idea which sample each bam file corresponds to.
+Instead, it expects the client to know for each sample to read the corresponding secret `key`.
+Only this `key` is passed in REST queries.
+
+
+Configuration
+=============
+
+Settings can be edited in `conf/application.conf`. In particular,
+
+- You must indicate ``env.BAM_PATH`` to tell where it can find BAM files for reading.
+- It is set to use MySQL. You can change the database driver in the ``db`` section.
+- You will probably want to configure CORS in ``play.filters.cors``.
+
+Development
 ===========
 
-- HomeController.scala:
+Run the local dev server::
 
-  Shows how to handle simple HTTP requests.
+    activator run
 
-- AsyncController.scala:
+Run tests::
 
-  Shows how to do asynchronous programming when handling a request.
+    activator test
 
-- CountController.scala:
+Build the source (to `target/universal/`)::
 
-  Shows how to inject a component into a controller and use the component when
-  handling requests.
+    activator dist
 
-Components
-==========
+Deployment: copy the built archive to destination, decompress, then
 
-- Module.scala:
+    ./bin/bam-server -v \
+        -Dconfig.file=$SETTINGS \
+        -Dhttp.port=$PORT \
+        -Dhttps.port=$PORT_HTTPS
 
-  Shows how to use Guice to bind all the components needed by your application.
+See also `/scripts/deploy.sh`.
 
-- Counter.scala:
+Test that it works:
 
-  An example of a component that contains state, in this case a simple counter.
+    ./scripts/test_functional.sh
 
-- ApplicationTimer.scala:
 
-  An example of a component that starts when the application starts and stops
-  when the application stops.
+REST API
+========
 
-Filters
-=======
+Let `$key` be the BAM secret identifier in the database.
 
-- Filters.scala:
+- GET /
 
-  Creates the list of HTTP filters used by your application.
+  Says hello, just to test if the server is listening.
 
-- ExampleFilter.scala
+- GET /download/index/$key
 
-  A simple filter that adds a header to every response.
+  Returns the content of the .bai for that BAM file, assuming that the index
+  is called <bam_filename>.bai .
+
+- GET /downloadRange/$key
+
+  Returns the content of the BAM file. It is expecting a Range HTTP header
+  to extract only the portion of interest, based on the index.
+  If suffixed with '.bai', it will return the index just as above.
+
+- GET /download/$key/$region
+
+  Uses samtools (if found) to extract the region (``samtools view -hb <bam> $region``),
+  copy it temporarily to ``TEMP_BAM_DIR``, and serve that sub-file.
+
+- GET /read/$key[?region=$region]
+
+  Returns the output of ``samtools view -hb <bam> $region | base64``
+  (i.e. need to decode base64 from the response, but at least the binary text can be
+  passed using HTTP without creating any temporary file).
+
+- GET /view/$key[?region=$region]
+
+  Returns the reads for the given region in JSON format.
+  Currently, it looks like this:
+
+    [
+      {
+         "chrom": "chr1",
+         "name": "long-read-name",
+         "start": 1234,
+         "end": 45678,
+         "cigar": "long-cigar-string"
+      },
+    ...
+    ]
+
+  It can be edited to return whatever you want for you own BAM viewer.
+  Look at `htsjdk docs under SAMRecord <https://samtools.github.io/htsjdk/javadoc/htsjdk/>`_
+  for available fields.

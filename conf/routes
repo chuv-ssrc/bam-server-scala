@@ -7,7 +7,6 @@ GET /                                   controllers.HomeController.index
 
 # Download a BAM index
 GET /downloadRange/$key<([\w.]+).bai>   controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
-GET /download/$key<([\w.]+).bai>        controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
 GET /download/index/:key                controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
 
 # Download a BAM file

@@ -60,7 +60,7 @@ class ApplicationSpec extends PlaySpec with OneAppPerTest {
       contentAsBytes(indexResponse).length mustEqual 101
     }
 
-    "return the whole BAM content if Range is large enough, and status 200" in {
+    "return the whole BAM content if Range is large enough" in {
       implicit lazy val materializer: Materializer = app.materializer
       val request = FakeRequest(GET, s"/downloadRange/$KEY")
                     .withHeaders(RANGE -> "bytes=0-21793", CONNECTION -> "keep-alive", ACCEPT -> "*/*")
@@ -78,14 +78,5 @@ class ApplicationSpec extends PlaySpec with OneAppPerTest {
 
   }
 
-  "CountController" should {
-
-    "return an increasing count" in {
-      contentAsString(route(app, FakeRequest(GET, "/count")).get) mustBe "0"
-      contentAsString(route(app, FakeRequest(GET, "/count")).get) mustBe "1"
-      contentAsString(route(app, FakeRequest(GET, "/count")).get) mustBe "2"
-    }
-
-  }
 
 }
