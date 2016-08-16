@@ -6,7 +6,7 @@ This small Play application has been built with the purpose of serving BAM files
 for viewing them in IGV.js, while keeping the files secure (since human
 genomic data is very sensible).
 
-It relies on a database with a single table and the following schema:
+It relies on a database with a single table and the following schema::
 
     CREATE TABLE `bam` (
         `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
