@@ -16,12 +16,13 @@ import scala.collection.mutable.ArrayBuffer
 class BamController @Inject()(db: Database) extends Controller {
 
   /**
-    * Return the file names scorresponding to this key in the database
+    * Return the file name corresponding to this key in the database
     */
   def getBamName(key: String): String = {
     db.withConnection { conn =>
-      val cursor = conn.createStatement
-      val res = cursor.executeQuery("SELECT `key`,`filename` FROM bam WHERE `key`='" + key + "';")
+      val statement = conn.prepareStatement("SELECT `key`,`filename` FROM bam WHERE `key`=?;")
+      statement.setString(1, key)
+      val res = statement.executeQuery()
       val filenames = ArrayBuffer.empty[String]
       while (res.next()) {
         filenames += res.getString("filename")

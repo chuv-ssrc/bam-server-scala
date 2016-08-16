@@ -14,9 +14,6 @@ GET /downloadRange/$key<([\w.]+).bai>   controllers.BamDownloadController.downlo
 GET /download/:key/:region              controllers.BamDownloadController.download(key: String, region: String, desc: Option[String])
 GET /downloadRange/:key                 controllers.BamDownloadController.downloadRange(key: String, desc: Option[String])
 
-# Create a symlink of a BAM file in a public served dir and return the path to it
-GET /symlink/:key                       controllers.BamSymlinkController.symlink(key: String, region: Option[String], desc: Option[String])
-
 # Return the text output of "samtools view -hb"
 GET /read/:key                          controllers.BamReadController.read(key: String, region: String ?= "", desc: Option[String])
 
