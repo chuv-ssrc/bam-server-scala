@@ -6,16 +6,16 @@
 GET /                                   controllers.HomeController.index
 
 # Download a BAM index
-GET /download/index/:key                controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
-GET /download/$key<([\w.]+).bai>        controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
 GET /downloadRange/$key<([\w.]+).bai>   controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
+GET /download/$key<([\w.]+).bai>        controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
+GET /download/index/:key                controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
 
 # Download a BAM file
-GET /download/:key/:region              controllers.BamDownloadController.download(key: String, region: String, desc: Option[String])
 GET /downloadRange/:key                 controllers.BamDownloadController.downloadRange(key: String, desc: Option[String])
+GET /download/:key/:region              controllers.BamSamtoolsViewController.download(key: String, region: String, desc: Option[String])
 
 # Return the text output of "samtools view -hb"
-GET /read/:key                          controllers.BamReadController.read(key: String, region: String ?= "", desc: Option[String])
+GET /read/:key                          controllers.BamSamtoolsViewController.read(key: String, region: String ?= "", desc: Option[String])
 
 # Return JSON-formatted reads
 GET /view/:key                          controllers.BamViewController.view(key: String, region: String ?= "", desc: Option[String])
@@ -23,13 +23,6 @@ GET /view/:key                          controllers.BamViewController.view(key: 
 
 
 
-## Startup examples
-
-# An example controller showing how to use dependency injection
-GET /count                      controllers.CountController.count
-
-# An example controller showing how to write asynchronous code
-GET /message                    controllers.AsyncController.message
 
 # Map static resources from the /public folder to the /assets URL path
 GET /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
