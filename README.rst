@@ -3,7 +3,8 @@ A simple BAM server in Scala
 ============================
 
 This small Play application has been built with the purpose of serving BAM files
-for viewing them in IGV.js, while keeping the files secure (since human
+for viewing them in `IGV.js <https://github.com/igvteam/igv.js/tree/master>`_,
+while keeping the files secure (since human
 genomic data is very sensible).
 
 It relies on a database with a single table and the following schema::
