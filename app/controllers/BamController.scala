@@ -1,10 +1,15 @@
 package controllers
 
+import java.io.File
+import java.nio.file.Paths
 import javax.inject.Inject
 
 import play.api.mvc._
 import play.api.db._
 import play.api.Logger
+import utils.Constants._
+
+import sys.process._
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -32,8 +37,14 @@ class BamController @Inject()(db: Database) extends Controller {
     }
   }
 
+  def isOnDisk(file: File, archive: Boolean = false): Boolean = { 
+    if (archive) {
+      val isFound: Int = s"scripts/onDisk.sh ${file.toString}".!
+      isFound == 0
+    } else (
+      file.exists
+    )
+  }
+
 }
-
-
-
 

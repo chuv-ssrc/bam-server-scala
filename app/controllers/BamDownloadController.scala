@@ -11,8 +11,6 @@ import utils.BamUtils._
 import utils.Constants._
 import utils.Utils._
 
-import sys.process._
-
 
 
 class BamDownloadController @Inject()(db: Database) extends BamController(db) {
@@ -31,20 +29,19 @@ class BamDownloadController @Inject()(db: Database) extends BamController(db) {
 
     if (bamFilename.isEmpty) InternalServerError(s"No corresponding BAM file for that key in database.")
     else {
-      val indexExists = indexPath.toFile.exists
-      if (! indexExists) {
+      val indexFile = indexPath.toFile
+      if (! isOnDisk(indexFile)) {
         if (! samtoolsExists())
           InternalServerError("Index file not found, and could not find 'samtools' in $PATH to fix it.")
-        else if (! bamPath.toFile.exists) {
+        else if (! isOnDisk(bamPath.toFile)) {
           InternalServerError("Index file not found, and BAM file not found on disk.")
         }
         else {
           indexBam(indexPath.toString)
-          RangeResult.ofFile(indexPath.toFile, request.headers.get(RANGE), Some(BINARY))
+          RangeResult.ofFile(indexFile, request.headers.get(RANGE), Some(BINARY))
         }
       } else {
-        //Ok.sendFile(indexPath.toFile, inline=true)
-        RangeResult.ofFile(indexPath.toFile, request.headers.get(RANGE), Some(BINARY))
+        RangeResult.ofFile(indexFile, request.headers.get(RANGE), Some(BINARY))
       }
     }
   }
@@ -64,7 +61,7 @@ class BamDownloadController @Inject()(db: Database) extends BamController(db) {
     val bam: File = Paths.get(BAM_PATH, bamFilename).toFile
 
     if (bamFilename.isEmpty) InternalServerError(s"No corresponding BAM file for that key in database")
-    else if (! bam.exists) InternalServerError(s"BAM file not found on disk")
+    else if (! isOnDisk(bam)) InternalServerError(s"BAM file not found on disk")
     else {
       RangeResult.ofFile(bam, request.headers.get(RANGE), Some(BINARY))
     }
