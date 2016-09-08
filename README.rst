@@ -44,22 +44,40 @@ Run tests::
 
     activator test
 
+
+Deployment
+==========
+
 Build the source (to `target/universal/`)::
 
     activator dist
 
-Deployment: copy the built archive to destination, decompress, then::
+Copy the built archive to destination, decompress.
+
+Launch the server (see also `/scripts/deploy.sh`)::
 
     ./bin/bam-server -v \
         -Dconfig.file=$SETTINGS \
         -Dhttp.port=$PORT \
         -Dhttps.port=$PORT_HTTPS
 
-See also `/scripts/deploy.sh`.
+Test that it works (otherwise file an issue!)::
 
-Test that it works::
+    curl -k http://localhost:9000/
 
-    ./scripts/test_functional.sh
+Configure a proxy. Here with Apache::
+
+    <VirtualHost *:443>
+        ...
+        ProxyPass         /bamserver  http://localhost:9000
+        ProxyPassReverse  /bamserver  http://localhost:9000
+        ...
+    </Virtualhost>
+
+Call the service with ``https://<host>/bamserver/``
+
+N.B. To use another proxy than Apache, see
+`<Play HTTPServer docs <https://www.playframework.com/documentation/2.5.x/HTTPServer>`_
 
 
 REST API
@@ -69,7 +87,7 @@ Let `$key` be the BAM secret identifier in the database.
 
 - GET /
 
-  Says hello, just to test if the server is listening.
+  Says "BAM server operational.", just to test if the server is listening.
 
 - GET /download/index/$key
 
