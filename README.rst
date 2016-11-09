@@ -77,7 +77,7 @@ Configure a proxy. Here with Apache::
 Call the service with ``https://<host>/bamserver/``
 
 N.B. To use another proxy than Apache, see
-`<Play HTTPServer docs <https://www.playframework.com/documentation/2.5.x/HTTPServer>`_
+`Play HTTPServer docs <https://www.playframework.com/documentation/2.5.x/HTTPServer>`_
 
 
 REST API

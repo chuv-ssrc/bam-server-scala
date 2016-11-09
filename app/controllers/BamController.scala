@@ -37,7 +37,7 @@ class BamController @Inject()(db: Database) extends Controller {
     }
   }
 
-  def isOnDisk(file: File, archive: Boolean = false): Boolean = { 
+  def isOnDisk(file: File, archive: Boolean = false): Boolean = {
     if (archive) {
       val isFound: Int = s"scripts/onDisk.sh ${file.toString}".!
       isFound == 0
