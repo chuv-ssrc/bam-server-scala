@@ -10,7 +10,7 @@ libraryDependencies ++= Seq(
   jdbc,
   cache,
   ws,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0-RC1" % Test,
+  "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.0" % Test,
   "com.github.samtools" % "htsjdk" % "2.1.1",
   "mysql" % "mysql-connector-java" % "5.1.36",
   "org.mockito" % "mockito-all" % "1.9.5"
