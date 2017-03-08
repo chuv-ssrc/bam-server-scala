@@ -8,6 +8,8 @@ target
 /.project
 /.settings
 /RUNNING_PID
+/backup
+/private_scripts
 
 # Scala worksheet
 *.sc
