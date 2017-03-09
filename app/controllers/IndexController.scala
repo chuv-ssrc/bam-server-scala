@@ -21,35 +21,45 @@ import scala.util.{Failure, Success}
 class IndexController @Inject()(db: Database, config: Configuration) extends BamQueryController(db, config) {
 
   def baiPost = Action { implicit request =>
-    //Logger.debug(request.toString)
-
-    val token = request.headers.get("Authorization")
-
-    parseBamRequest(request) match {
+    parseBamRequestFromPost(request) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)
         InternalServerError(err.getMessage)
       case Success(br: BamRequest) =>
-        /* Index not found, try to index */
-        if (!isOnDisk(br.indexFile)) {
-          /* Cannot index because no samtools not found */
-          if (!samtoolsExists()) {
-            InternalServerError("Index file not found, and could not find 'samtools' in $PATH to fix it.")
-          /* Index the bam using samtools */
-          } else {
-            indexBam(br.indexFile.toPath.toString)
-            RangeResult.ofFile(br.indexFile, request.headers.get(RANGE), Some(BINARY))
-          }
-        } else {
-          RangeResult.ofFile(br.indexFile, request.headers.get(RANGE), Some(BINARY))
-        }
+        getBamIndex(br)
     }
 
   }
 
-  def baiGet(sampleKey: String, token: String) = Action {
-    //Ok(views.html.index("BAM server operational."))
-    Ok("BAM server operational.")
+  def baiGet(sampleKey: String, token: String) = Action { implicit request =>
+    keyToBamRequest(sampleKey) match {
+      case Failure(err) =>
+        //Logger.debug(err.getMessage)
+        InternalServerError(err.getMessage)
+      case Success(br: BamRequest) =>
+        getBamIndex(br)
+    }
+  }
+
+  //--------------- Common code ----------------//
+
+  def getBamIndex(br: BamRequest)(implicit request: Request[AnyContent]): Result = {
+    //Logger.debug(request.toString)
+    val token = request.headers.get("Authorization")
+    /* Index not found, try to index */
+    if (!isOnDisk(br.indexFile)) {
+      /* Cannot index because no samtools not found */
+      if (!samtoolsExists()) {
+        InternalServerError("Index file not found, and could not find 'samtools' in $PATH to fix it.")
+        /* Index the bam using samtools */
+      } else {
+        indexBam(br.indexFile.toPath.toString)
+        RangeResult.ofFile(br.indexFile, request.headers.get(RANGE), Some(BINARY))
+      }
+      /* Index found, return */
+    } else {
+      RangeResult.ofFile(br.indexFile, request.headers.get(RANGE), Some(BINARY))
+    }
   }
 
 }
