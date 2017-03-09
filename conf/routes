@@ -6,25 +6,28 @@
 GET /                                   controllers.HomeController.index
 
 POST /bai                               controllers.IndexController.baiPost
-GET /bai/:token                         controllers.IndexController.baiGet(token: String)
+GET /bai/:sampleKey/:token              controllers.IndexController.baiGet(sampleKey: String, token: String)
+
+POST /bam/:range                        controllers.RangeController.bamPost(range: String)
+GET /bam/:sampleKey/:range/:token       controllers.RangeController.bamGet(sampleKey: String, range: String, token: String)
 
 
 ######################################
 
-# Download a BAM index
-GET /downloadRange/$key<([\w.]+).bai>   controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
-GET /download/index/:key                controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
-
-# Download a BAM file
-GET /downloadRange/:key                 controllers.BamDownloadController.downloadRange(key: String, desc: Option[String])
-GET /download/:key/:region              controllers.BamSamtoolsViewController.download(key: String, region: String, desc: Option[String])
-
-# Return the text output of "samtools view -hb"
-GET /read/:key                          controllers.BamSamtoolsViewController.read(key: String, region: String ?= "", desc: Option[String])
-
-# Return JSON-formatted reads
-GET /view/:key                          controllers.BamViewController.view(key: String, region: String ?= "", desc: Option[String])
-
+## Download a BAM index
+#GET /downloadRange/$key<([\w.]+).bai>   controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
+#GET /download/index/:key                controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
+#
+## Download a BAM file
+#GET /downloadRange/:key                 controllers.BamDownloadController.downloadRange(key: String, desc: Option[String])
+#GET /download/:key/:region              controllers.BamSamtoolsViewController.download(key: String, region: String, desc: Option[String])
+#
+## Return the text output of "samtools view -hb"
+#GET /read/:key                          controllers.BamSamtoolsViewController.read(key: String, region: String ?= "", desc: Option[String])
+#
+## Return JSON-formatted reads
+#GET /view/:key                          controllers.BamViewController.view(key: String, region: String ?= "", desc: Option[String])
+#
 
 
 

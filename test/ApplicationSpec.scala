@@ -17,21 +17,6 @@ class ApplicationSpec extends PlaySpec with OneAppPerTest {
 
   }
 
-  "IndexController" should {
-
-    "provide the BAM index (POST)" in {
-      val body: JsValue = Json.parse("""{"id_token": "aaaa"}""")
-      val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body)).get
-      status(response) mustBe OK
-    }
-
-    "provide the BAM index (GET)" in {
-      val response = route(app, FakeRequest(GET, "/bai/aaaa")).get
-      status(response) mustBe OK
-    }
-
-  }
-
   "HomeController" should {
 
     "render the index page" in {

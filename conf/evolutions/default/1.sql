@@ -13,6 +13,8 @@ CREATE TABLE `bam` (
 );
 
 INSERT INTO `bam` VALUES (1, 'test.bam', 'testkey', NULL, NULL, NULL, 1);
+INSERT INTO `bam` VALUES (2, 'nothere.bam', 'notherekey', NULL, NULL, NULL, 1);
+INSERT INTO `bam` VALUES (3, 'inactive.bam', 'inactivekey', NULL, NULL, NULL, 0);
 
 # --- !Downs
 
