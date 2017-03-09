@@ -6,30 +6,29 @@ import java.io.File
 import java.nio.file.{Path, Paths}
 import javax.inject.Inject
 
-import play.api.Logger
+import play.api.{Configuration, Logger}
 import play.api.db.Database
 import play.api.mvc.{Action, Controller, RangeResult}
 import play.api.libs.json._
 import utils.BamUtils._
-import utils.Constants._
 import utils.Utils._
+import scala.Predef.require
 
-import scala.concurrent.Future
 
 /**
  * This controller creates an `Action` to handle HTTP requests to the
  * application's home page.
  */
 @Singleton
-class IndexController @Inject()(db: Database) extends Controller {
+class IndexController @Inject()(db: Database, config: Configuration) extends Controller {
+
+  val BAM_PATH = config.getString("env.BAM_PATH").get
+  require(Paths.get(BAM_PATH).toFile.exists, "BAM_PATH not found. Exiting.")
+
 
   def baiPost = Action { implicit request =>
-    Logger.info("---------------------------------------------------")
-    Logger.info("Request: " + request.toString)
-    Logger.info("---------------------------------------------------")
-    //println(request.session)
+    //Logger.debug(request.toString)
     val token = request.headers.get("Authorization")
-    println(token)
     request.body.asJson match {
       case None =>
         InternalServerError("No body was found in POST request")
@@ -42,7 +41,7 @@ class IndexController @Inject()(db: Database) extends Controller {
             val bamPath: Path = Paths.get(BAM_PATH, bamFilename)
             val indexPath: Path = Paths.get(BAM_PATH, bamFilename + ".bai")
             if (bamFilename.isEmpty) {
-              Logger.error(s"key '$key' not found in database")
+              //Logger.error(s"Key '$key' not found in database")
               InternalServerError(s"No corresponding BAM file for that key in database.")
             } else {
               val indexFile = indexPath.toFile

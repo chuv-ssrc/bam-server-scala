@@ -1,17 +1,18 @@
-# Database schema
+# -- Database schema
 
 # --- !Ups
 
 CREATE TABLE `bam` (
-    `id` INTEGER(11) NOT NULL AUTO_INCREMENT,
+    `id` INTEGER(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `filename` VARCHAR(255) NOT NULL,
     `key` VARCHAR(255) NOT NULL,
     `hash` VARCHAR(255) DEFAULT NULL,
     `description` VARCHAR(255) DEFAULT NULL,
-    `ondisk` VARCHAR(255) DEFAULT NULL,
-    `active` TINYINT(1) DEFAULT 1,
-    PRIMARY KEY (id)
+    `ondisk` TINYINT(1) DEFAULT NULL,
+    `active` TINYINT(1) NOT NULL DEFAULT 0
 );
+
+INSERT INTO `bam` VALUES (1, 'test.bam', 'testkey', NULL, NULL, NULL, 1);
 
 # --- !Downs
 

@@ -24,7 +24,8 @@ libraryDependencies ++= Seq(
 // Database drivers
 libraryDependencies ++= Seq(
   "mysql" % "mysql-connector-java" % "5.1.36",
-  "org.xerial" % "sqlite-jdbc" % "3.16.1"
+  "org.xerial" % "sqlite-jdbc" % "3.16.1",
+  "com.h2database" % "h2" % "1.4.193"
 )
 
 // JWT

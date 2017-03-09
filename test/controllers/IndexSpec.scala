@@ -15,14 +15,14 @@ class IndexSpec extends PlaySpec with OneAppPerSuite {
 
     "provide the BAM index (POST) if everything is right" in {
       val header = ("Authorization", s"Bearer $token")
-      val body: JsValue = Json.parse(s"""{"key": "aaaa"}""")
+      val body: JsValue = Json.parse(s"""{"key": "testkey"}""")
       val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
       status(response) mustBe OK
     }
 
     "fail if the key is not known to the database" in {
       val header = ("Authorization", s"Bearer $token")
-      val body: JsValue = Json.parse(s"""{"key": "aaaa"}""")
+      val body: JsValue = Json.parse(s"""{"key": "xxx"}""")
       val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
       status(response) mustBe INTERNAL_SERVER_ERROR
     }
