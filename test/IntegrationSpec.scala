@@ -9,15 +9,15 @@ import play.api.test.Helpers._
  * Docs:
  * https://www.playframework.com/documentation/2.5.4/ScalaFunctionalTestingWithScalaTest#Writing-functional-tests-with-ScalaTest
  */
-class IntegrationSpec extends PlaySpec with OneServerPerTest with OneBrowserPerTest with HtmlUnitFactory {
-
-  "Application" should {
-
-    "work from within a browser" in {
-
-      go to ("http://localhost:" + port)
-
-      pageSource must include ("BAM server operational.")
-    }
-  }
-}
+//class IntegrationSpec extends PlaySpec with OneServerPerTest with OneBrowserPerTest with HtmlUnitFactory {
+//
+//  "Application" should {
+//
+//    "work from within a browser" in {
+//
+//      go to ("http://localhost:" + port)
+//
+//      pageSource must include ("BAM server operational.")
+//    }
+//  }
+//}

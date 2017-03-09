@@ -5,6 +5,12 @@
 # Say hello
 GET /                                   controllers.HomeController.index
 
+POST /bai                               controllers.IndexController.baiPost
+GET /bai/:token                         controllers.IndexController.baiGet(token: String)
+
+
+######################################
+
 # Download a BAM index
 GET /downloadRange/$key<([\w.]+).bai>   controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
 GET /download/index/:key                controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
