@@ -17,16 +17,14 @@ GET /bam/range/:sampleKey/:token          controllers.RangeController.bamGet(sam
 POST /bam/samtools                        controllers.SamtoolsController.bamPost(region: Option[String])
 GET /bam/samtools/:sampleKey/:token       controllers.SamtoolsController.bamGet(sampleKey: String, token: String, region: Option[String])
 
-
-
-######################################
-
 ## Return JSON-formatted reads
-#GET /view/:key                          controllers.BamViewController.view(key: String, region: String ?= "", desc: Option[String])
-#
+POST /bam/json                            controllers.JsonController.bamPost(region: Option[String])
+GET /bam/json/:sampleKey/:token           controllers.JsonController.bamGet(sampleKey: String, token: String, region: Option[String])
 
 
 
 
+
+# (This was already here:)
 # Map static resources from the /public folder to the /assets URL path
-GET /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
+GET /assets/*file                         controllers.Assets.versioned(path="/public", file: Asset)
