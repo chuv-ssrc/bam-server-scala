@@ -27,24 +27,27 @@ class RangeController @Inject()(db: Database, config: Configuration) extends Bam
         //Logger.debug(err.getMessage)
         InternalServerError(err.getMessage)
       case Success(br: BamRequest) =>
-        getBamRange(br)
+        RangeResult.ofFile(br.bamFile, request.headers.get(RANGE), Some(BINARY))
     }
   }
 
-  def bamGet(sampleKey: String, range: String, token: String) = Action { implicit request =>
+  def bamGet(sampleKey: String, token: String, range: Option[String]) = Action { implicit request =>
     keyToBamRequest(sampleKey) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)
         InternalServerError(err.getMessage)
       case Success(br: BamRequest) =>
-        getBamRange(br)
+        range match {
+          case None => RangeResult.ofFile(br.bamFile, None, Some(BINARY))
+          case Some(rangeFromUrl) =>
+            val rangeRegex = """(\d*-\d*)""".r
+            rangeRegex.findFirstIn(rangeFromUrl) match {
+              case None => InternalServerError("Wrong format for argument 'range': should match /\\d*-\\d*/")
+              case Some(r: String) =>
+                RangeResult.ofFile(br.bamFile, Some("bytes="+r), Some(BINARY))
+            }
+        }
     }
-  }
-
-  //--------------- Common code ----------------//
-
-  def getBamRange(br: BamRequest)(implicit request: Request[AnyContent]): Result = {
-    RangeResult.ofFile(br.bamFile, request.headers.get(RANGE), Some(BINARY))
   }
 
 }

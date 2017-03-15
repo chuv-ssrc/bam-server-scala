@@ -11,7 +11,7 @@ GET /bai/:sampleKey/:token                controllers.IndexController.baiGet(sam
 
 # Read bytes with 'Range' header
 POST /bam/range                           controllers.RangeController.bamPost()
-GET /bam/range/:sampleKey/:range/:token   controllers.RangeController.bamGet(sampleKey: String, range: String, token: String)
+GET /bam/range/:sampleKey/:token          controllers.RangeController.bamGet(sampleKey: String, token: String, range: Option[String])
 
 
 ######################################

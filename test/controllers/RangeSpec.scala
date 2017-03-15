@@ -31,7 +31,7 @@ class RangeSpec extends PlaySpec with OneAppPerSuite {
     }
 
     "provide a slice of the BAM if everything is right (GET)" in {
-      val response = route(app, FakeRequest(GET, s"/bam/range/testkey/0-65639/$token")).get
+      val response = route(app, FakeRequest(GET, s"/bam/range/testkey/$token?range=0-65639")).get
       status(response) mustBe PARTIAL_CONTENT
     }
 
@@ -46,7 +46,7 @@ class RangeSpec extends PlaySpec with OneAppPerSuite {
     }
 
     "Complain if none of the ranges overlap the resource (GET)" in {
-      val response = route(app, FakeRequest(POST, s"/bam/range/testkey/0-65639/$token")).get
+      val response = route(app, FakeRequest(GET, s"/bam/range/testkey/$token?range=151990-355919")).get
       status(response) mustBe REQUESTED_RANGE_NOT_SATISFIABLE
     }
 
