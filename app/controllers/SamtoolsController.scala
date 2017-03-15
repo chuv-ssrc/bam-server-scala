@@ -21,53 +21,41 @@ class SamtoolsController @Inject()(db: Database, config: Configuration) extends 
 
   //------------------ Actions -------------------//
 
-  def bamPost(maybeRegion: Option[String]) = Action { implicit request =>
+  def bamPost(region: Option[String]) = Action { implicit request =>
     parseBamRequestFromPost(request) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)
         InternalServerError(err.getMessage)
       case Success(br: BamRequest) =>
-        maybeRegion match {
-          case None =>
-            Ok.sendFile(br.bamFile)
-          case Some(region) =>
-            if (! samtoolsExists())
-              InternalServerError("Could not find 'samtools' in $PATH.")
-            else {
-              val command = s"samtools view -hb ${br.bamFile.toPath} $region"
-              val res: String = command.!!
-              Ok(res).as(BINARY)
-            }
-        }
+        getBamWithSamtools(br, region)
     }
   }
 
-  def bamGet(sampleKey: String, token: String, maybeRegion: Option[String]) = Action { implicit request =>
+  def bamGet(sampleKey: String, token: String, region: Option[String]) = Action { implicit request =>
     keyToBamRequest(sampleKey) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)
         InternalServerError(err.getMessage)
       case Success(br: BamRequest) =>
-        Ok("")
+        getBamWithSamtools(br, region)
     }
   }
 
+  //--------------- Common code ----------------//
 
-//    /**
-//      * Return the BAM text as output by "samtools view -hb <filename> <region>".
-//      * It is encoded in base64 because transfers have to be ascii (?).
-//      * Subject to "java.lang.OutOfMemoryError: Java heap space" when the region is too big.
-//      */
-//    def read(key: String, region: String, description: Option[String]) = Action {
-//      val filename = getBamName(key)
-//      val bamPath: Path = Paths.get(BAM_PATH, filename)
-//      if (! samtoolsExists())
-//        InternalServerError("Could not find 'samtools' in $PATH.")
-//      else {
-//        val command = s"samtools view -hb $bamPath $region" #| "base64"
-//        val res: String = command.!!
-//        Ok(res).as(HTML)
-//      }
-//    }
+  def getBamWithSamtools(br: BamRequest, maybeRegion: Option[String]) = {
+    maybeRegion match {
+      case None =>
+        Ok.sendFile(br.bamFile)
+      case Some(region) =>
+        if (! samtoolsExists())
+          InternalServerError("Could not find 'samtools' in $PATH.")
+        else {
+          val command = s"samtools view -hb ${br.bamFile.toPath} $region"
+          val res: String = command.!!
+          Ok(res).as(BINARY)
+        }
+    }
+  }
 
 }

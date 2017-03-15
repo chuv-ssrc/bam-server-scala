@@ -15,6 +15,7 @@ import utils.BamUtils.samtoolsExists
 class SamtoolsSpec extends PlaySpec with OneAppPerSuite with BeforeAndAfter {
 
   val token = "asdf"
+  val testkey = "testkey"
   val body: JsValue = Json.parse(s"""{"key": "testkey"}""")
   val headers = (AUTHORIZATION -> s"Bearer $token")
 
@@ -31,6 +32,14 @@ class SamtoolsSpec extends PlaySpec with OneAppPerSuite with BeforeAndAfter {
     "provide a slice of the BAM if a region is given (POST)" in {
       assume(samtoolsExists())
       val request = FakeRequest(POST, "/bam/samtools?region=chr1:761997-762551").withJsonBody(body).withHeaders(headers)
+      val response = route(app, request).get
+      status(response) mustBe OK
+      contentAsBytes(response).length must be > 100000
+    }
+
+    "provide a slice of the BAM if a region is given (GET)" in {
+      assume(samtoolsExists())
+      val request = FakeRequest(GET, s"/bam/samtools/$testkey/$token?region=chr1:761997-762551")
       val response = route(app, request).get
       status(response) mustBe OK
       contentAsBytes(response).length must be > 100000

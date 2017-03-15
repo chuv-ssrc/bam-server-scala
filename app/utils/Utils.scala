@@ -21,7 +21,7 @@ object Utils {
     }
   }
 
-  def hash(s:String, method:String="SHA") = {
+  def hash(s: String, method: String="SHA") = {
     MessageDigest.getInstance(method).digest((s).getBytes)
       .map(0xFF & _).map { "%02x".format(_) }.foldLeft(""){_ + _}
   }
@@ -34,9 +34,9 @@ object Utils {
     if (archive) {
       val isFound: Int = s"scripts/onDisk.sh ${file.toString}".!
       isFound == 0
-    } else (
+    } else {
       file.exists
-      )
+    }
   }
 
 }
@@ -44,12 +44,16 @@ object Utils {
 
 object BamUtils {
 
+  val stdout = new StringBuilder
+  val stderr = new StringBuilder
+  val logger = ProcessLogger(stdout append _, stderr append _)
+
   /**
     * Return whether samtools is found in PATH
     * @return Boolean
     */
   def samtoolsExists(): Boolean = {
-    val exists = "which samtools".! == 0
+    val exists = "which samtools" ! logger  == 0
     if (! exists) {
       Logger.error("Could not find 'samtools' in $PATH.")
       Logger.error(System.getenv("PATH"))
@@ -64,7 +68,7 @@ object BamUtils {
   def indexBam(bamFilename:String): Unit = {
     val commandIndex = s"samtools index $bamFilename"
     Logger.info("Indexing: " + commandIndex.toString)
-    commandIndex.!
+    commandIndex ! logger
   }
 
   /**

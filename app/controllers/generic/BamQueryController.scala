@@ -46,8 +46,8 @@ class BamQueryController @Inject()(db: Database, config: Configuration) extends 
     val indexPath: Path = Paths.get(BAM_PATH, bamFilename + ".bai")
     if (bamFilename.isEmpty) {
       Failure(new Exception(s"No corresponding BAM file for key $sampleKey in database."))
-    //} else if (!isOnDisk(bamPath.toFile)) {
-    } else if (!bamPath.toFile.exists) {
+    } else if (!isOnDisk(bamPath.toFile)) {
+    //} else if (!bamPath.toFile.exists) {
       Failure(new Exception(s"This BAM file cannot be found at BAM_PATH=$BAM_PATH."))
     } else {
       Success(BamRequest(bamPath.toFile, indexPath.toFile))

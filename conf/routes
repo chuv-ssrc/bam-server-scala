@@ -21,12 +21,6 @@ GET /bam/samtools/:sampleKey/:token       controllers.SamtoolsController.bamGet(
 
 ######################################
 
-## Download a BAM file
-#GET /download/:key/:region              controllers.BamSamtoolsViewController.download(key: String, region: String, desc: Option[String])
-#
-## Return the text output of "samtools view -hb"
-#GET /read/:key                          controllers.BamSamtoolsViewController.read(key: String, region: String ?= "", desc: Option[String])
-#
 ## Return JSON-formatted reads
 #GET /view/:key                          controllers.BamViewController.view(key: String, region: String ?= "", desc: Option[String])
 #

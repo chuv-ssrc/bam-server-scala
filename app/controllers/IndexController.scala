@@ -44,8 +44,6 @@ class IndexController @Inject()(db: Database, config: Configuration) extends Bam
   //--------------- Common code ----------------//
 
   def getBamIndex(br: BamRequest)(implicit request: Request[AnyContent]): Result = {
-    //Logger.debug(request.toString)
-    val token = request.headers.get("Authorization")
     /* Index not found, try to index */
     if (!isOnDisk(br.indexFile)) {
       /* Cannot index because no samtools not found */
