@@ -1,6 +1,6 @@
 
-.. image:: https://travis-ci.org/jdelafon/bam-server-scala.svg
-   :target: https://travis-ci.org/jdelafon/bam-server-scala.svg
+![Travis build status](https://travis-ci.org/jdelafon/bam-server-scala.svg "Travis build status")
+
 
 A simple BAM server in Scala
 ============================
@@ -32,32 +32,37 @@ REST API
 Let `$key` be a sample identifier in the database.
 Let `token` be a Bearer token (JWT) for authentication.
 
-- GET /
 
-  Says "BAM server operational.", just to test if the server is listening.
+    GET /
 
-- POST /bai
-- GET /bai/:token
+Says "BAM server operational.", just to test if the server is listening.
 
-  Returns the content of the index (.bai) for that BAM file.
 
-- POST /bam/range
-- GET /bam/range/:range/:token
+    POST /bai
+    GET /bai/:token
 
-  Returns the content of the BAM file, expecting a Range HTTP header
-  to extract only the bytes range of interest - likely based on the index.
+Returns the content of the index (.bai) for that BAM file.
 
-- POST /bam/samtools/:region
-- GET /bam/samtools/:region/:token
 
-  Uses samtools (if available) to extract the region (``samtools view -hb <bam> <region>``).
-  Return the content as binary.
+    POST /bam/range
+    GET /bam/range/:range/:token
 
-- POST /bam/json/
-- GET /bam/json/:region/:token
+Returns the content of the BAM file, expecting a Range HTTP header
+to extract only the bytes range of interest - likely based on the index.
 
-  Returns the reads for the given region in JSON format.
-  Currently, it looks like this::
+
+    POST /bam/samtools/:region
+    GET /bam/samtools/:region/:token
+
+Uses samtools (if available) to extract the region (``samtools view -hb <bam> <region>``).
+Return the content as binary.
+
+
+    POST /bam/json/
+    GET /bam/json/:region/:token
+
+Returns the reads for the given region in JSON format.
+Currently, it looks like this:
 
     [
       {
@@ -70,9 +75,9 @@ Let `token` be a Bearer token (JWT) for authentication.
     ...
     ]
 
-  It can be edited to return whatever you want for you own BAM viewer.
-  Look at `htsjdk docs under SAMRecord <https://samtools.github.io/htsjdk/javadoc/htsjdk/>`_
-  for available fields.
+It can be edited to return whatever you want for you own BAM viewer.
+Look at [htsjdk docs under SAMRecord](https://samtools.github.io/htsjdk/javadoc/htsjdk)
+for available fields.
 
 Configuration
 =============
@@ -86,11 +91,11 @@ Settings can be edited in `conf/application.conf`. In particular,
 Development
 ===========
 
-Run the local dev server::
+Run the local dev server:
 
     activator run
 
-Run tests::
+Run tests:
 
     activator test
 
@@ -98,24 +103,24 @@ Run tests::
 Deployment
 ==========
 
-Build the source (to `target/universal/`)::
+Build the source (to `target/universal/`):
 
     activator dist
 
 Copy the built archive to destination, decompress.
 
-Launch the server (see also `/scripts/deploy.sh`)::
+Launch the server (see also `/scripts/deploy.sh`):
 
     ./bin/bam-server -v \
         -Dconfig.file=$SETTINGS \
         -Dhttp.port=$PORT \
         -Dhttps.port=$PORT_HTTPS
 
-Test that it works (otherwise file an issue!)::
+Test that it works (otherwise file an issue!):
 
     curl -k http://localhost:9000/
 
-Configure a proxy. Here with Apache::
+Configure a proxy. Here with Apache:
 
     <VirtualHost *:443>
         ...
@@ -124,9 +129,8 @@ Configure a proxy. Here with Apache::
         ...
     </Virtualhost>
 
-Call the service with ``https://<host>/bamserver/``
+The service will then get available at ``https://<host>/bamserver/``
 
 N.B. To use another proxy than Apache, see
-`Play HTTPServer docs <https://www.playframework.com/documentation/2.5.x/HTTPServer>`_
-
+[Play HTTPServer docs](https://www.playframework.com/documentation/2.5.x/HTTPServer).
 
