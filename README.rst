@@ -5,27 +5,74 @@
 A simple BAM server in Scala
 ============================
 
-This small Play application has been built with the purpose of serving BAM files
-for viewing them in `IGV.js <https://github.com/igvteam/igv.js/tree/master>`_
-(but it can be used more generally), while keeping the files secure (since human
-genomic data is very sensitive).
+The application described in this document is a microservice that allows querying portions of BAM files potentially located on a remote server, and implementing the OAuth2 authorization protocol. We name it "bam-server".
 
-It relies on a database with a single table and the following schema::
+The goal is to provide
 
-    CREATE TABLE `bam` (
-        `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-        `filename` VARCHAR(255) NOT NULL,
-        `key` VARCHAR(255) NOT NULL,
-        `hash` VARCHAR(255),
-        `description` VARCHAR(500)
-    ) ENGINE=InnoDB;
+1. A way to query remote BAM files securely, according to user permissions;
+2. An example widget that displays read alignments the user can access to;
+3. Compatibility with any OAuth2-based authorization server.
 
-In other words, to each BAM file `filename` corresponds a secret `key`.
+Bam-server is written in Scala using the Play framework, and in itself represents only
+the resource server in the OAuth2 diagram. It communicates with a local MySQL database
+that maps each BAM file name with the corresponding sample identifier.
 
-It is not doing any user authentication. It has no idea which sample each bam file corresponds to.
-Instead, it expects the client to know for each sample to read the corresponding secret `key`.
-Only this `key` is passed in REST queries.
+Functionalities
+===============
 
+Bam-server can return portions of BAM files using 3 different strategies:
+
+1. Extracting a range of bytes;
+2. Using samtools if available;
+3. Using the Picard-tools library.
+
+REST API
+========
+
+Let `$key` be a sample identifier in the database.
+Let `token` be a Bearer token (JWT) for authentication.
+
+- GET /
+
+  Says "BAM server operational.", just to test if the server is listening.
+
+- POST /bai
+- GET /bai/:token
+
+  Returns the content of the index (.bai) for that BAM file.
+
+- POST /bam/range
+- GET /bam/range/:range/:token
+
+  Returns the content of the BAM file, expecting a Range HTTP header
+  to extract only the bytes range of interest - likely based on the index.
+
+- POST /bam/samtools/:region
+- GET /bam/samtools/:region/:token
+
+  Uses samtools (if available) to extract the region (``samtools view -hb <bam> <region>``).
+  Return the content as binary.
+
+- POST /bam/json/
+- GET /bam/json/:region/:token
+
+  Returns the reads for the given region in JSON format.
+  Currently, it looks like this::
+
+    [
+      {
+         "chrom": "chr1",
+         "name": "long-read-name",
+         "start": 1234,
+         "end": 45678,
+         "cigar": "long-cigar-string"
+      },
+    ...
+    ]
+
+  It can be edited to return whatever you want for you own BAM viewer.
+  Look at `htsjdk docs under SAMRecord <https://samtools.github.io/htsjdk/javadoc/htsjdk/>`_
+  for available fields.
 
 Configuration
 =============
@@ -83,53 +130,3 @@ N.B. To use another proxy than Apache, see
 `Play HTTPServer docs <https://www.playframework.com/documentation/2.5.x/HTTPServer>`_
 
 
-REST API
-========
-
-Let `$key` be the BAM secret identifier in the database.
-
-- GET /
-
-  Says "BAM server operational.", just to test if the server is listening.
-
-- GET /download/index/$key
-
-  Returns the content of the .bai for that BAM file, assuming that the index
-  is called <bam_filename>.bai .
-
-- GET /downloadRange/$key
-
-  Returns the content of the BAM file. It is expecting a Range HTTP header
-  to extract only the portion of interest, based on the index.
-  If suffixed with '.bai', it will return the index just as above.
-
-- GET /download/$key/$region
-
-  Uses samtools (if found) to extract the region (``samtools view -hb <bam> $region``),
-  copy it temporarily to ``TEMP_BAM_DIR``, and serve that sub-file.
-
-- GET /read/$key[?region=$region]
-
-  Returns the output of ``samtools view -hb <bam> $region | base64``
-  (i.e. need to decode base64 from the response, but at least the binary text can be
-  passed using HTTP without creating any temporary file).
-
-- GET /view/$key[?region=$region]
-
-  Returns the reads for the given region in JSON format.
-  Currently, it looks like this::
-
-    [
-      {
-         "chrom": "chr1",
-         "name": "long-read-name",
-         "start": 1234,
-         "end": 45678,
-         "cigar": "long-cigar-string"
-      },
-    ...
-    ]
-
-  It can be edited to return whatever you want for you own BAM viewer.
-  Look at `htsjdk docs under SAMRecord <https://samtools.github.io/htsjdk/javadoc/htsjdk/>`_
-  for available fields.
