@@ -14,11 +14,12 @@ import scala.util.{Failure, Success}
 
 
 /**
- * This controller creates an `Action` to handle HTTP requests to the
- * application's home page.
+ * Provide the BAM index file (.bai).
  */
 @Singleton
 class IndexController @Inject()(db: Database, config: Configuration) extends BamQueryController(db, config) {
+
+  //------------------ Actions -------------------//
 
   def baiPost = Action { implicit request =>
     parseBamRequestFromPost(request) match {
@@ -28,7 +29,6 @@ class IndexController @Inject()(db: Database, config: Configuration) extends Bam
       case Success(br: BamRequest) =>
         getBamIndex(br)
     }
-
   }
 
   def baiGet(sampleKey: String, token: String) = Action { implicit request =>

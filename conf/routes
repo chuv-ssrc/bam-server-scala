@@ -3,13 +3,15 @@
 # ~~~~
 
 # Say hello
-GET /                                   controllers.HomeController.index
+GET /                                     controllers.HomeController.index
 
-POST /bai                               controllers.IndexController.baiPost
-GET /bai/:sampleKey/:token              controllers.IndexController.baiGet(sampleKey: String, token: String)
+# Get BAM index
+POST /bai                                 controllers.IndexController.baiPost
+GET /bai/:sampleKey/:token                controllers.IndexController.baiGet(sampleKey: String, token: String)
 
-POST /bam/:range                        controllers.RangeController.bamPost(range: String)
-GET /bam/:sampleKey/:range/:token       controllers.RangeController.bamGet(sampleKey: String, range: String, token: String)
+# Read bytes with 'Range' header
+POST /bam/range                           controllers.RangeController.bamPost()
+GET /bam/range/:sampleKey/:range/:token   controllers.RangeController.bamGet(sampleKey: String, range: String, token: String)
 
 
 ######################################
