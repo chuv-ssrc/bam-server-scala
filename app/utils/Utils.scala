@@ -6,6 +6,8 @@ import java.util.Calendar
 
 import play.api.Logger
 import play.api.db.Database
+import play.api.libs.json.JsValue
+import play.api.mvc.{AnyContent, Request}
 
 import scala.collection.mutable.ArrayBuffer
 import sys.process._
@@ -13,33 +15,21 @@ import sys.process._
 
 object Utils {
 
+  def stringValueFromRequestBody(request: Request[AnyContent], key: String): Option[String] = {
+    request.body.asJson flatMap { body: JsValue =>
+       (body \ key).asOpt[String]
+    }
+  }
+
   def hash(s:String, method:String="SHA") = {
     MessageDigest.getInstance(method).digest((s).getBytes)
       .map(0xFF & _).map { "%02x".format(_) }.foldLeft(""){_ + _}
   }
 
-  /** Delete all files in *dir* matching this *regex* that are older than *seconds*
-   * Default is one hour, all extensions.
-   */
-  def cleanupOldTempFiles(dir:String, seconds:Long=3600, regex:String=".*"): Unit = {
-    val now:Long = Calendar.getInstance().getTime.getTime
-    val delta:Long = seconds * 1000
-    //Logger.info(s"Erasing all files in '$dir' older than ${delta / 1000 / 60} min")
-    new File(dir).listFiles.filter(_.getName.matches(".*?\\.bam.*"))
-      .filter(_.lastModified < now - delta).foreach(_.delete)
-  }
-
   /**
-   * Remove '.bam' or '.bam.bai' extensions from the input string
-   */
-  def withoutBamExtension(s: String) : String = {
-    val queryKey:String = s match {
-      case Constants.KEY_REGEX(root,b,ext) => root
-      case _ => s
-    }
-    queryKey
-  }
-
+    * Use the script onDisk.sh to check if the file exists,
+    * because it is able to deal with long-term storage and mounted volumes like we have with /archive.
+    */
   def isOnDisk(file: File, archive: Boolean = false): Boolean = {
     if (archive) {
       val isFound: Int = s"scripts/onDisk.sh ${file.toString}".!

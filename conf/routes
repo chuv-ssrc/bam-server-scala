@@ -9,9 +9,14 @@ GET /                                     controllers.HomeController.index
 POST /bai                                 controllers.IndexController.baiPost
 GET /bai/:sampleKey/:token                controllers.IndexController.baiGet(sampleKey: String, token: String)
 
-# Read bytes with 'Range' header
+# Read bytes fom BAM with 'Range' header
 POST /bam/range                           controllers.RangeController.bamPost()
 GET /bam/range/:sampleKey/:token          controllers.RangeController.bamGet(sampleKey: String, token: String, range: Option[String])
+
+# Read BAM using samtools
+POST /bam/samtools                        controllers.SamtoolsController.bamPost(region: Option[String])
+GET /bam/samtools/:sampleKey/:token       controllers.SamtoolsController.bamGet(sampleKey: String, token: String, region: Option[String])
+
 
 
 ######################################

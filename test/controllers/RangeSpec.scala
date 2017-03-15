@@ -25,17 +25,20 @@ class RangeSpec extends PlaySpec with OneAppPerSuite {
       val headers = (AUTHORIZATION -> s"Bearer $token")
       val response = route(app, FakeRequest(POST, "/bam/range").withJsonBody(body).withHeaders(headers)).get
       status(response) mustBe OK
+      contentType(response).get mustBe BINARY
     }
 
     "provide a slice of the BAM if everything is right (POST)" in {
       val body: JsValue = Json.parse(s"""{"key": "testkey"}""")
       val response = route(app, FakeRequest(POST, "/bam/range").withJsonBody(body).withHeaders(headers:_*)).get
       status(response) mustBe PARTIAL_CONTENT
+      contentType(response).get mustBe BINARY
     }
 
     "provide a slice of the BAM if everything is right (GET)" in {
       val response = route(app, FakeRequest(GET, s"/bam/range/testkey/$token?range=0-65639")).get
       status(response) mustBe PARTIAL_CONTENT
+      contentType(response).get mustBe BINARY
     }
 
     "Complain if none of the ranges overlap the resource (POST)" in {

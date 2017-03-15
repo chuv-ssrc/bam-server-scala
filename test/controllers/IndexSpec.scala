@@ -20,11 +20,13 @@ class IndexSpec extends PlaySpec with OneAppPerSuite {
       val body: JsValue = Json.parse(s"""{"key": "testkey"}""")
       val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
       status(response) mustBe OK
+      contentType(response).get mustBe BINARY  // application/octet-stream
     }
 
     "provide the BAM index if everything is right (GET)" in {
       val response = route(app, FakeRequest(GET, s"/bai/testkey/$token")).get
       status(response) mustBe OK
+      contentType(response).get mustBe BINARY
     }
 
     "fail if the key is not known to the database (POST)" in {

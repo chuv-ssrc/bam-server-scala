@@ -54,11 +54,11 @@ class IndexController @Inject()(db: Database, config: Configuration) extends Bam
         /* Index the bam using samtools */
       } else {
         indexBam(br.indexFile.toPath.toString)
-        RangeResult.ofFile(br.indexFile, request.headers.get(RANGE), Some(BINARY))
+        Ok.sendFile(br.indexFile)
       }
       /* Index found, return */
     } else {
-      RangeResult.ofFile(br.indexFile, request.headers.get(RANGE), Some(BINARY))
+      Ok.sendFile(br.indexFile)
     }
   }
 
