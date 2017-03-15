@@ -13,6 +13,7 @@ import play.api.test._
 class RangeSpec extends PlaySpec with OneAppPerSuite {
 
   val token = "asdf"
+  val body: JsValue = Json.parse(s"""{"key": "testkey"}""")
   val headers = List(
     (AUTHORIZATION -> s"Bearer $token"),
     (RANGE -> s"bytes=0-65639")
@@ -21,7 +22,6 @@ class RangeSpec extends PlaySpec with OneAppPerSuite {
   "RangeController" should {
 
     "Return everything if no range is given (POST)" in {
-      val body: JsValue = Json.parse(s"""{"key": "testkey"}""")
       val headers = (AUTHORIZATION -> s"Bearer $token")
       val response = route(app, FakeRequest(POST, "/bam/range").withJsonBody(body).withHeaders(headers)).get
       status(response) mustBe OK
@@ -29,7 +29,6 @@ class RangeSpec extends PlaySpec with OneAppPerSuite {
     }
 
     "provide a slice of the BAM if everything is right (POST)" in {
-      val body: JsValue = Json.parse(s"""{"key": "testkey"}""")
       val response = route(app, FakeRequest(POST, "/bam/range").withJsonBody(body).withHeaders(headers:_*)).get
       status(response) mustBe PARTIAL_CONTENT
       contentType(response).get mustBe BINARY
@@ -42,7 +41,6 @@ class RangeSpec extends PlaySpec with OneAppPerSuite {
     }
 
     "Complain if none of the ranges overlap the resource (POST)" in {
-      val body: JsValue = Json.parse(s"""{"key": "testkey"}""")
       val headers = List(
         (AUTHORIZATION -> s"Bearer $token"),
         (RANGE -> s"bytes=151990-355919")
