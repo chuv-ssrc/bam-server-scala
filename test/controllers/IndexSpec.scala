@@ -6,6 +6,9 @@ import play.api.test.Helpers._
 import play.api.test._
 
 
+/**
+  * Test IndexController.
+  */
 class IndexSpec extends PlaySpec with OneAppPerSuite {
 
   val token = "asdf"

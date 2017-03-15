@@ -16,12 +16,7 @@ GET /bam/range/:sampleKey/:token          controllers.RangeController.bamGet(sam
 
 ######################################
 
-## Download a BAM index
-#GET /downloadRange/$key<([\w.]+).bai>   controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
-#GET /download/index/:key                controllers.BamDownloadController.downloadIndex(key: String, desc: Option[String])
-#
 ## Download a BAM file
-#GET /downloadRange/:key                 controllers.BamDownloadController.downloadRange(key: String, desc: Option[String])
 #GET /download/:key/:region              controllers.BamSamtoolsViewController.download(key: String, region: String, desc: Option[String])
 #
 ## Return the text output of "samtools view -hb"

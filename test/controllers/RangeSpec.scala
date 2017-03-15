@@ -7,6 +7,9 @@ import play.api.test.Helpers._
 import play.api.test._
 
 
+/**
+  * Test RangeController.
+  */
 class RangeSpec extends PlaySpec with OneAppPerSuite {
 
   val token = "asdf"
@@ -49,21 +52,6 @@ class RangeSpec extends PlaySpec with OneAppPerSuite {
       val response = route(app, FakeRequest(GET, s"/bam/range/testkey/$token?range=151990-355919")).get
       status(response) mustBe REQUESTED_RANGE_NOT_SATISFIABLE
     }
-
-
-//    "fail if the key is not known to the database" in {
-//      val header = ("Authorization", s"Bearer $token")
-//      val body: JsValue = Json.parse(s"""{"key": "xxx"}""")
-//      val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
-//      status(response) mustBe INTERNAL_SERVER_ERROR
-//    }
-//
-//    "fail if the key exists but the bam file is not found" in {
-//      val header = ("Authorization", s"Bearer $token")
-//      val body: JsValue = Json.parse(s"""{"key": "notherekey"}""")
-//      val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
-//      status(response) mustBe INTERNAL_SERVER_ERROR
-//    }
 
   }
 
