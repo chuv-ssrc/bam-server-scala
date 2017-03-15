@@ -14,6 +14,7 @@ import sys.process._
 /**
  * Provide a slice of a BAM file as returned by `samtools view -hb <bam> <region>`
  * in the body of the response.
+ * If the given region is out of range, return an empty bam.
  */
 @Singleton
 class SamtoolsController @Inject()(db: Database, config: Configuration) extends BamQueryController(db, config) {
@@ -41,7 +42,7 @@ class SamtoolsController @Inject()(db: Database, config: Configuration) extends 
     }
   }
 
-  def bamGet(sampleKey: String, token: String, region: Option[String]) = Action { implicit request =>
+  def bamGet(sampleKey: String, token: String, maybeRegion: Option[String]) = Action { implicit request =>
     keyToBamRequest(sampleKey) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)
