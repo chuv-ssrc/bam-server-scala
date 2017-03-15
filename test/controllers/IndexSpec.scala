@@ -12,19 +12,20 @@ import play.api.test._
 class IndexSpec extends PlaySpec with OneAppPerSuite {
 
   val token = "asdf"
+  val testkey = "testkey"
   val header = (AUTHORIZATION, s"Bearer $token")
 
   "IndexController" should {
 
     "provide the BAM index if everything is right (POST)" in {
-      val body: JsValue = Json.parse(s"""{"key": "testkey"}""")
+      val body: JsValue = Json.parse(s"""{"key": "$testkey"}""")
       val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
       status(response) mustBe OK
       contentType(response).get mustBe BINARY  // application/octet-stream
     }
 
     "provide the BAM index if everything is right (GET)" in {
-      val response = route(app, FakeRequest(GET, s"/bai/testkey/$token")).get
+      val response = route(app, FakeRequest(GET, s"/bai/$testkey/$token")).get
       status(response) mustBe OK
       contentType(response).get mustBe BINARY
     }

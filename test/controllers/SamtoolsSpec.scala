@@ -1,6 +1,5 @@
 package controllers
 
-import org.scalatest.BeforeAndAfter
 import org.scalatestplus.play._
 import play.api.libs.json._
 import play.api.test.Helpers._
@@ -12,11 +11,11 @@ import utils.BamUtils.samtoolsExists
   * Test SamtoolsController.
   * The test bam has coordinates in range chr1:761997-762551.
   */
-class SamtoolsSpec extends PlaySpec with OneAppPerSuite with BeforeAndAfter {
+class SamtoolsSpec extends PlaySpec with OneAppPerSuite {
 
   val token = "asdf"
   val testkey = "testkey"
-  val body: JsValue = Json.parse(s"""{"key": "testkey"}""")
+  val body: JsValue = Json.parse(s"""{"key": "$testkey"}""")
   val headers = (AUTHORIZATION -> s"Bearer $token")
 
   "SamtoolsController" should {

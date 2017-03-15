@@ -1,4 +1,7 @@
 
+.. image:: bam-server-scala.svg
+   :target: https://travis-ci.org/jdelafon/bam-server-scala.svg?branch=dev
+
 A simple BAM server in Scala
 ============================
 

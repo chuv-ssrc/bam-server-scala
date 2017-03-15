@@ -15,7 +15,7 @@ class JsonSpec extends PlaySpec with OneAppPerSuite with BeforeAndAfter {
 
   val token = "asdf"
   val testkey = "testkey"
-  val body: JsValue = Json.parse(s"""{"key": "testkey"}""")
+  val body: JsValue = Json.parse(s"""{"key": "$testkey"}""")
   val headers = (AUTHORIZATION -> s"Bearer $token")
 
   "JsonController" should {
