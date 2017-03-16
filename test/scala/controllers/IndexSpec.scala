@@ -15,58 +15,55 @@ class IndexSpec extends PlaySpec with OneAppPerSuite {
   val testkey = "testkey"
   val header = (AUTHORIZATION, s"Bearer $token")
 
+
+  "`parseBamRequestFromPost`" should {
+
+    "fail if there is no JSON body" in {
+      val response = route(app, FakeRequest(POST, "/bai").withHeaders(header)).get
+      status(response) mustBe INTERNAL_SERVER_ERROR
+      contentAsString(response) must startWith("No key found in request body")
+    }
+
+    "fail if there is no 'key' in the body" in {
+      val body: JsValue = Json.parse(s"""{"yyyy": "xxx"}""")
+      val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
+      status(response) mustBe INTERNAL_SERVER_ERROR
+      contentAsString(response) must startWith("No key found in request body")
+    }
+
+  }
+
+
   "`keyToBamRequest`" should {
-
-    "return a BamRequest for the given sample key" in {
-    }
-
-    "complain if the key is not found in database" in {
-
-    }
-
-    "complain if the corresponding BAM file is not found on disk" in {
-
-    }
 
     "fail if the key is not known to the database (POST)" in {
       val body: JsValue = Json.parse(s"""{"key": "xxx"}""")
       val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
       status(response) mustBe INTERNAL_SERVER_ERROR
+      contentAsString(response) must startWith("No corresponding BAM file")
     }
 
-    "fail if the key exists but the bam file is not found (POST)" in {
+    "fail if the key exists but the bam file is not found on disk (POST)" in {
       val body: JsValue = Json.parse(s"""{"key": "notherekey"}""")
       val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
       status(response) mustBe INTERNAL_SERVER_ERROR
+      contentAsString(response) must startWith("This BAM file cannot be found")
     }
 
     "fail if the key is not known to the database (GET)" in {
       val response = route(app, FakeRequest(GET, s"/bai/xxx/$token")).get
       status(response) mustBe INTERNAL_SERVER_ERROR
+      contentAsString(response) must startWith("No corresponding BAM file")
     }
 
     "fail if the key exists but the bam file is not found (GET)" in {
       val response = route(app, FakeRequest(GET, s"/bai/notherekey/$token")).get
       status(response) mustBe INTERNAL_SERVER_ERROR
+      contentAsString(response) must startWith("This BAM file cannot be found")
     }
 
   }
 
-  "`parseBamRequestFromPost`" should {
-
-    "return a BamRequest from the JSON body of a request" in {
-
-    }
-
-    "complain if there is no JSON body" in {
-
-    }
-
-    "complain if there is no 'key' in the body" in {
-
-    }
-
-  }
 
   "IndexController" should {
 
