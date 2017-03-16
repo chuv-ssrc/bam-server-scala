@@ -1,12 +1,12 @@
-package controllers
+package scala.controllers
 
 import javax.inject.Inject
 
-import controllers.generic.BamQueryController
 import org.scalatestplus.play._
 import play.api.libs.json._
 import play.api.test.Helpers._
 import play.api.test._
+
 
 
 /**
@@ -43,21 +43,6 @@ class BamQuerySpec extends PlaySpec with OneAppPerSuite {
     "complain if there is no 'key' in the body" in {
 
     }
-
-    // See IndexSpec
-//    "fail if the key is not found in database (POST)" in {
-//      val body: JsValue = Json.parse(s"""{"key": "xxx"}""")
-//      val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
-//      status(response) mustBe INTERNAL_SERVER_ERROR
-//    }
-//
-//    "fail if the corresponding BAM file is not found on disk (POST)" in {
-//      val body: JsValue = Json.parse(s"""{"key": "notherekey"}""")
-//      val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
-//      status(response) mustBe INTERNAL_SERVER_ERROR
-//    }
-
-
   }
 
 }
