@@ -29,36 +29,37 @@ Bam-server can return portions of BAM files using 3 different strategies:
 REST API
 ========
 
-Let `$key` be a sample identifier in the database.
-Let `token` be a Bearer token (JWT) for authentication.
+Let `:sample` be a sample identifier in the database;
+
+Let `:token` be a Bearer token (JWT) for authentication;
+
+Let `<range>` be a bytes range, formatted as "123-456";
+
+Let `<region>` be a genomic region, formatted as "chr1:10000-20000".
 
     GET /
 
 Says "BAM server operational.", just to test if the server is listening.
 
-
     POST /bai
-    GET /bai/:token
+    GET /bai/:sample/:token
 
 Returns the content of the index (.bai) for that BAM file.
 
-
     POST /bam/range
-    GET /bam/range/:range/:token
+    GET /bam/range/:sample/:token?range=<range>
 
 Returns the content of the BAM file, expecting a Range HTTP header
 to extract only the bytes range of interest - likely based on the index.
 
-
-    POST /bam/samtools/:region
-    GET /bam/samtools/:region/:token
+    POST /bam/samtools?region=<region>
+    GET /bam/samtools/:sample/:token?region=<region>
 
 Uses samtools (if available) to extract the region (``samtools view -hb <bam> <region>``).
 Return the content as binary.
 
-
-    POST /bam/json/
-    GET /bam/json/:region/:token
+    POST /bam/json?region=<region>
+    GET /bam/json/:sample/:token?region=<region>
 
 Returns the reads for the given region in JSON format, using the [htsjdk](http://samtools.github.io/htsjdk/) library.
 The fields correspond to the SAM file columns:
