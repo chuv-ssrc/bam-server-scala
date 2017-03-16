@@ -15,6 +15,14 @@ class IndexSpec extends PlaySpec with OneAppPerSuite {
   val testkey = "testkey"
   val header = (AUTHORIZATION, s"Bearer $token")
 
+  /*
+    This first part should vertainly be tested outside of the IndexController scope. For instance:
+
+      import org.scalatest.mock.MockitoSugar
+      class BamQuerySpec extends PlaySpec with MockitoSugar {
+        val ctrl = new BamController(mock[Database])
+      }
+   */
 
   "`parseBamRequestFromPost`" should {
 
@@ -32,7 +40,6 @@ class IndexSpec extends PlaySpec with OneAppPerSuite {
     }
 
   }
-
 
   "`keyToBamRequest`" should {
 
@@ -63,7 +70,6 @@ class IndexSpec extends PlaySpec with OneAppPerSuite {
     }
 
   }
-
 
   "IndexController" should {
 

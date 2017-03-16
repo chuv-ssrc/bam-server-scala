@@ -2,7 +2,6 @@ package utils
 
 import java.io.File
 import java.security.MessageDigest
-import java.util.Calendar
 
 import play.api.Logger
 import play.api.db.Database
@@ -21,7 +20,7 @@ object Utils {
     }
   }
 
-  def hash(s: String, method: String="SHA") = {
+  def hash(s: String, method: String = "SHA") = {
     MessageDigest.getInstance(method).digest((s).getBytes)
       .map(0xFF & _).map { "%02x".format(_) }.foldLeft(""){_ + _}
   }

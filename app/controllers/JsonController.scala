@@ -3,7 +3,7 @@ package controllers
 import javax.inject.{Inject, _}
 
 import controllers.generic.BamQueryController
-import htsjdk.samtools.{SamReader, SamReaderFactory}
+import htsjdk.samtools.{SAMRecord, SamReader, SamReaderFactory}
 import models.BamRequest
 import play.api.Configuration
 import play.api.db.Database
@@ -69,6 +69,41 @@ class JsonController @Inject()(db: Database, config: Configuration) extends BamQ
 
   //--------------- Common code ----------------//
 
+  def mapFromRead(read: SAMRecord) = {
+    Map(
+      "name" -> read.getReadName,
+      "flag" -> read.getFlags,
+      "chrom" -> read.getReferenceName,
+      "start" -> read.getAlignmentStart,
+      "end" -> read.getAlignmentEnd, // start + read length
+      "mapq" -> read.getMappingQuality,
+      "cigar" -> read.getCigarString,
+      "rnext" -> (if (read.getMateReferenceName == read.getReferenceName) "=" else read.getMateReferenceName),
+      "pnext" -> read.getMateAlignmentStart,
+      "tlen" -> read.getInferredInsertSize, // "insert size", aka "template length"
+      "seq" -> read.getReadString,
+      "qual" -> read.getBaseQualityString
+    )
+  }
+
+  def parseRegion(region: String): (String, Int, Int) = {
+    val regex = """(\w+):([0-9]+)-([0-9]+)""".r
+    region match {
+      case regex(chrom: String, start: String, end: String) => (chrom, start.toInt, end.toInt)
+      case _ => throw new IllegalArgumentException(s"Invalid region: '$region'")
+    }
+  }
+
+  def isInRange(read: SAMRecord, region: Option[String]): Boolean = {
+    region match {
+      case None => true
+      case Some(reg: String) =>
+        val (chrom, start, end) = parseRegion(reg)
+        read.getReferenceName == chrom && read.getAlignmentStart >= start && read.getAlignmentEnd <= end
+      case _ => false
+    }
+  }
+
   /**
     * See https://samtools.github.io/htsjdk/javadoc/htsjdk
     * under SamRecord for all available attributes.
@@ -79,20 +114,9 @@ class JsonController @Inject()(db: Database, config: Configuration) extends BamQ
     var reads = new ArrayBuffer[Map[String, Any]]
     while (it.hasNext) {
       val read = it.next
-      reads += Map(
-        "name" -> read.getReadName,
-        "flag" -> read.getFlags,
-        "chrom" -> read.getReferenceName,
-        "start" -> read.getAlignmentStart,
-        "end" -> read.getAlignmentEnd,  // start + read length
-        "mapq" -> read.getMappingQuality,
-        "cigar" -> read.getCigarString,
-        //"rnext" -> read.getMateReferenceName,
-        //"pnext" -> read.getMateReferenceIndex.toInt,
-        "tlen" -> read.getInferredInsertSize,  // "insert size", aka "template length"
-        "seq" -> read.getReadString,
-        "qual" -> read.getBaseQualityString
-      )
+      if (isInRange(read, region)) {
+        reads += mapFromRead(read)
+      }
     }
     Ok(Json.toJson(reads))
   }
