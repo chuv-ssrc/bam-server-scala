@@ -32,7 +32,6 @@ REST API
 Let `$key` be a sample identifier in the database.
 Let `token` be a Bearer token (JWT) for authentication.
 
-
     GET /
 
 Says "BAM server operational.", just to test if the server is listening.
@@ -61,23 +60,26 @@ Return the content as binary.
     POST /bam/json/
     GET /bam/json/:region/:token
 
-Returns the reads for the given region in JSON format.
-Currently, it looks like this:
+Returns the reads for the given region in JSON format, using the [htsjdk](http://samtools.github.io/htsjdk/) library.
+The fields correspond to the SAM file columns:
 
     [
       {
-         "chrom": "chr1",
-         "name": "long-read-name",
-         "start": 1234,
-         "end": 45678,
-         "cigar": "long-cigar-string"
+         "name": "HISEQ:206:C8E95ANXX:3:2113:2451:6639",   // read name
+         "flag": 99,
+         "chrom": "chr1",       // reference name
+         "start": 1234,         // leftmost mapping position
+         "end": 1334,           // rightmost mapping position
+         "mapq": 50,            // mapping quality
+         "cigar": "101M",       // cigar string
+         "rnext": "=",          // 
+         "pnext": 4567,         //
+         "tlen": 283,           // template length, aka insert size
+         "seq": "AATTAGGA...",  // [ACGTN=.],
+         "qual": "AB<B@G>F..."  // per-base quality
       },
     ...
     ]
-
-It can be edited to return whatever you want for you own BAM viewer.
-Look at [htsjdk docs under SAMRecord](https://samtools.github.io/htsjdk/javadoc/htsjdk)
-for available fields.
 
 Configuration
 =============
@@ -100,8 +102,8 @@ Run tests:
     activator test
 
 
-Deployment
-==========
+Deployment in production
+========================
 
 Build the source (to `target/universal/`):
 
@@ -109,18 +111,18 @@ Build the source (to `target/universal/`):
 
 Copy the built archive to destination, decompress.
 
-Launch the server (see also `/scripts/deploy.sh`):
+Launch the server:
 
     ./bin/bam-server -v \
         -Dconfig.file=$SETTINGS \
         -Dhttp.port=$PORT \
         -Dhttps.port=$PORT_HTTPS
 
-Test that it works (otherwise file an issue!):
+Test that it works:
 
     curl -k http://localhost:9000/
 
-Configure a proxy. Here with Apache:
+Configure a proxy to make it available from the outside world. Here with Apache:
 
     <VirtualHost *:443>
         ...
@@ -129,7 +131,7 @@ Configure a proxy. Here with Apache:
         ...
     </Virtualhost>
 
-The service will then get available at ``https://<host>/bamserver/``
+The service becomes available at ``https://<host>/bamserver/``
 
 N.B. To use another proxy than Apache, see
 [Play HTTPServer docs](https://www.playframework.com/documentation/2.5.x/HTTPServer).

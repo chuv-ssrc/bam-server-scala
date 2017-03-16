@@ -6,7 +6,6 @@ import javax.inject.Inject
 import models.BamRequest
 import play.api.Configuration
 import play.api.db.Database
-import play.api.libs.json.JsValue
 import play.api.mvc.{AnyContent, Controller, Request}
 import utils.BamUtils.getBamName
 import utils.Utils.isOnDisk

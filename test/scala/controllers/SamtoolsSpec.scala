@@ -1,4 +1,4 @@
-package controllers
+package scala.controllers
 
 import org.scalatestplus.play._
 import play.api.libs.json._
