@@ -4,11 +4,10 @@ import org.scalatestplus.play._
 import play.api.test._
 import play.api.test.Helpers._
 import java.nio.file.Paths
-
+import utils.Common._
 
 import org.scalatestplus.play._
 
-import utils.Common._
 
 
 class UtilsSpec extends PlaySpec {
