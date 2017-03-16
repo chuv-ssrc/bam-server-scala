@@ -8,7 +8,7 @@ import java.nio.file.Paths
 
 import org.scalatestplus.play._
 
-import utils.Utils._
+import utils.Common._
 
 
 class UtilsSpec extends PlaySpec {

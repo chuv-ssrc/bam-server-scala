@@ -8,8 +8,8 @@ import play.api.Configuration
 import play.api.db.Database
 import play.api.mvc.{AnyContent, Controller, Request}
 import utils.BamUtils.getBamName
-import utils.Utils.isOnDisk
-import utils.Utils.stringValueFromRequestBody
+import utils.Common.isOnDisk
+import utils.Common.stringValueFromRequestBody
 
 import scala.util.{Failure, Success, Try}
 

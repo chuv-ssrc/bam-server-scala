@@ -8,7 +8,7 @@ import play.api.{Configuration, Logger}
 import play.api.db.Database
 import play.api.mvc._
 import utils.BamUtils._
-import utils.Utils._
+import utils.Common._
 
 import scala.util.{Failure, Success}
 

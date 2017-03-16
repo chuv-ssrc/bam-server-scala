@@ -12,6 +12,7 @@ import play.api.mvc._
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success}
+import utils.JsonUtils.anyWrites
 
 
 /**
@@ -33,17 +34,6 @@ import scala.util.{Failure, Success}
   */
 @Singleton
 class JsonController @Inject()(db: Database, config: Configuration) extends BamQueryController(db, config) {
-
-  implicit val anyWrites = new Writes[Any] {
-    def writes(x: Any) = x match {
-      case n: Int => JsNumber(n)
-      case s: String => JsString(s)
-      case b: Boolean => JsBoolean(b)
-      case m: Map[String, Any] @unchecked => JsObject(m.mapValues(writes))
-      case a: Seq[Any] => JsArray(a.map(writes))
-      case _ => JsNull
-    }
-  }
 
   //------------------ Actions -------------------//
 
