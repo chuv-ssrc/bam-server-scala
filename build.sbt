@@ -33,7 +33,8 @@ libraryDependencies ++= Seq(
   "com.pauldijou" %% "jwt-core" % "0.8.1",
   "com.pauldijou" %% "jwt-play-json" % "0.8.1",
   "com.pauldijou" %% "jwt-play" % "0.8.1",
-  "org.mindrot" % "jbcrypt" % "0.3m"
+  "org.mindrot" % "jbcrypt" % "0.3m",
+  "org.bouncycastle" % "bcprov-jdk15on" % "1.56"
 )
 
 resolvers += "scalaz-bintray" at "http://dl.bintray.com/scalaz/releases"
