@@ -1,24 +1,24 @@
 package auth
 
 import java.io.{FileInputStream, FileOutputStream, InputStreamReader, OutputStreamWriter}
-import java.security._
+import java.security.{Security, KeyPairGenerator, KeyPair, PublicKey, PrivateKey, Key, KeyFactory}
 import java.security.interfaces.{RSAPrivateKey, RSAPublicKey}
 import java.security.spec.{PKCS8EncodedKeySpec, X509EncodedKeySpec}
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.util.io.pem.{PemObject, PemReader, PemWriter}
 
-
 // Ref:
 // https://www.txedo.com/blog/java-generate-rsa-keys-write-pem-file/
 // https://www.txedo.com/blog/java-read-rsa-keys-pem-file/
+// http://stackoverflow.com/questions/6358555/obtaining-public-key-from-certificate
 
 object RSA {
 
   Security.addProvider(new BouncyCastleProvider())
   val generator: KeyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC")
 
-  private def generateRSAKeyPair(keySize: Int = 1024): KeyPair = {
+  private def generateRSAKeyPair(keySize: Int): KeyPair = {
     generator.initialize(keySize)
     generator.generateKeyPair()
   }
@@ -61,7 +61,7 @@ object RSA {
     PEMFile.write(key, "RSA PRIVATE KEY", path)
   }
 
-  object PEMFile {
+  private object PEMFile {
 
     def write(key: Key, description: String, filename: String): Unit = {
       val pemObject = new PemObject(description, key.getEncoded)
@@ -76,11 +76,28 @@ object RSA {
     def read(path: String): PemObject = {
       val pemReader: PemReader = new PemReader(new InputStreamReader(new FileInputStream(path)))
       try {
-        val pemObject: PemObject = pemReader.readPemObject()
-        pemObject
+        pemReader.readPemObject()
       } finally {
         pemReader.close()
       }
+    }
+
+  }
+
+  /******** CRT stuff *********/
+
+  def readPublicKeyFromCertificate(filename: String): PublicKey = {
+    Certificate.read(filename).getPublicKey
+  }
+
+  private object Certificate {
+
+    import java.security.cert.{Certificate, CertificateFactory}
+
+    def read(filename: String): Certificate = {
+      val fin = new FileInputStream(filename)
+      val f = CertificateFactory.getInstance("X.509")
+      f.generateCertificate(fin)
     }
 
   }
