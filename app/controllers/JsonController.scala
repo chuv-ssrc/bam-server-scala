@@ -2,6 +2,7 @@ package controllers
 
 import javax.inject.{Inject, _}
 
+import auth.AuthenticatedAction
 import controllers.generic.BamQueryController
 import htsjdk.samtools.{SAMRecord, SamReader, SamReaderFactory}
 import models.BamRequest
@@ -37,7 +38,7 @@ class JsonController @Inject()(db: Database, config: Configuration) extends BamQ
 
   //------------------ Actions -------------------//
 
-  def bamPost(region: Option[String]) = Action { implicit request =>
+  def bamPost(region: Option[String]) = AuthenticatedAction { implicit request =>
     parseBamRequestFromPost(request) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)
@@ -47,7 +48,7 @@ class JsonController @Inject()(db: Database, config: Configuration) extends BamQ
     }
   }
 
-  def bamGet(sampleKey: String, token: String, region: Option[String]) = Action { implicit request =>
+  def bamGet(sampleKey: String, token: String, region: Option[String]) = AuthenticatedAction { implicit request =>
     keyToBamRequest(sampleKey) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)

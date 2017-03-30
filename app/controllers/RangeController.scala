@@ -1,11 +1,14 @@
 package controllers
 
 import javax.inject.{Inject, _}
+
+import auth.AuthenticatedAction
 import controllers.generic.BamQueryController
 import models.BamRequest
 import play.api.Configuration
 import play.api.db.Database
 import play.api.mvc._
+
 import scala.util.{Failure, Success}
 
 
@@ -21,7 +24,7 @@ class RangeController @Inject()(db: Database, config: Configuration) extends Bam
 
   //------------------ Actions -------------------//
 
-  def bamPost() = Action { implicit request =>
+  def bamPost() = AuthenticatedAction { implicit request =>
     parseBamRequestFromPost(request) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)
@@ -31,7 +34,7 @@ class RangeController @Inject()(db: Database, config: Configuration) extends Bam
     }
   }
 
-  def bamGet(sampleKey: String, token: String, range: Option[String]) = Action { implicit request =>
+  def bamGet(sampleKey: String, token: String, range: Option[String]) = AuthenticatedAction { implicit request =>
     keyToBamRequest(sampleKey) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)

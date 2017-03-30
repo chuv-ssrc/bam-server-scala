@@ -1,12 +1,15 @@
 package controllers
 
 import javax.inject.{Inject, _}
+
+import auth.AuthenticatedAction
 import controllers.generic.BamQueryController
 import models.BamRequest
 import play.api.Configuration
 import play.api.db.Database
 import play.api.mvc._
 import utils.BamUtils.samtoolsExists
+
 import scala.util.{Failure, Success}
 import sys.process._
 
@@ -21,7 +24,7 @@ class SamtoolsController @Inject()(db: Database, config: Configuration) extends 
 
   //------------------ Actions -------------------//
 
-  def bamPost(region: Option[String]) = Action { implicit request =>
+  def bamPost(region: Option[String]) = AuthenticatedAction { implicit request =>
     parseBamRequestFromPost(request) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)
@@ -31,7 +34,7 @@ class SamtoolsController @Inject()(db: Database, config: Configuration) extends 
     }
   }
 
-  def bamGet(sampleKey: String, token: String, region: Option[String]) = Action { implicit request =>
+  def bamGet(sampleKey: String, token: String, region: Option[String]) = AuthenticatedAction { implicit request =>
     keyToBamRequest(sampleKey) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)
