@@ -31,8 +31,6 @@ REST API
 
 Let `:sample` be a sample identifier in the database;
 
-Let `:token` be a Bearer token (JWT) for authentication;
-
 Let `<range>` be a bytes range, formatted as "123-456";
 
 Let `<region>` be a genomic region, formatted as "chr1:10000-20000".
@@ -42,24 +40,24 @@ Let `<region>` be a genomic region, formatted as "chr1:10000-20000".
 Says "BAM server operational.", just to test if the server is listening.
 
     POST /bai
-    GET /bai/:sample/:token
+    GET /bai/:sample
 
 Returns the content of the index (.bai) for that BAM file.
 
     POST /bam/range
-    GET /bam/range/:sample/:token?range=<range>
+    GET /bam/range/:sample?range=<range>
 
 Returns the content of the BAM file, expecting a Range HTTP header
 to extract only the bytes range of interest - likely based on the index.
 
     POST /bam/samtools?region=<region>
-    GET /bam/samtools/:sample/:token?region=<region>
+    GET /bam/samtools/:sample?region=<region>
 
 Uses samtools (if available) to extract the region (``samtools view -hb <bam> <region>``).
 Return the content as binary.
 
     POST /bam/json?region=<region>
-    GET /bam/json/:sample/:token?region=<region>
+    GET /bam/json/:sample?region=<region>
 
 Returns the reads for the given region in JSON format, using the [htsjdk](http://samtools.github.io/htsjdk/) library.
 The fields correspond to the SAM file columns:
@@ -81,15 +79,37 @@ The fields correspond to the SAM file columns:
       },
     ...
     ]
+    
+All requests expect an Authorization header to be added to the request,
+with a Bearer token (JWT) that once base64-decoded, contains the user
+identifer under the claim `"name"`. For example:
+
+    curl -i -H "Authorization: Bearer xxxx.yyyy.zzzz" -X POST -d '{"sample": "SAMPLE1"} http://localhost:9000/bai
+    curl -i -H "Authorization: Bearer xxxx.yyyy.zzzz" http://localhost:9000/bai/SAMPLE1
+
+Alternatively, all request can accept a URL argument `?token=<JWT>` to pass the token.
+This mode is not recommended but sometimes necessary, depending on client-side constraints.
+For example:
+
+    curl -i http://localhost:9000/bai/SAMPLE1?token=xxxx.yyyy.zzzz
+
+For more details, see Authorization below.
+
+Authorization
+=============
+
+-- In construction... --
 
 Configuration
 =============
 
-Settings can be edited in `conf/application.conf`. In particular,
+Settings can be edited in `/conf/application.conf`. In particular,
 
 - You must indicate ``env.BAM_PATH`` to tell where it can find BAM files for reading.
-- It is set to use MySQL. You can change the database driver in the ``db`` section.
+- It is set to use SQLite. You can change the database driver in the ``db`` section.
 - You will probably want to configure CORS in ``play.filters.cors``.
+
+A default SQLite database is provided with the project source ("/resources/db/bam-server")
 
 Development
 ===========
@@ -101,6 +121,9 @@ Run the local dev server:
 Run tests:
 
     activator test
+    
+Tests run on a temporary, in-memory H2 database, 
+by running evolutions (/conf/evolutions/default/1.sql) from a clean state.
 
 
 Deployment in production
@@ -123,7 +146,7 @@ Test that it works:
 
     curl -k http://localhost:9000/
 
-Configure a proxy to make it available from the outside world. Here with Apache:
+Configure a proxy to make it available from the outside world. Example with Apache:
 
     <VirtualHost *:443>
         ...

@@ -12,7 +12,7 @@ import auth.Auth.validateToken
 import play.api.Logger
 
 
-// N.B. "Unauthorized" (401) means "unauthenticated". "Forbidden" (403) means "not enought rights" (inferior role).
+// N.B. "Unauthorized" (401) means "unauthenticated". "Forbidden" (403) means "not enought rights".
 
 /**
   * Extends the Request object to make it require a parameter of type User.
