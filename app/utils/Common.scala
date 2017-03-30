@@ -1,9 +1,13 @@
 package utils
 
 import java.io.File
+import java.nio.file.Paths
 import java.security.MessageDigest
+
 import play.api.libs.json.JsValue
 import play.api.mvc.{AnyContent, Request}
+
+import scala.util.matching.Regex
 import sys.process._
 
 
@@ -15,7 +19,7 @@ object Common {
     */
   def stringValueFromRequestBody(request: Request[AnyContent], key: String): Option[String] = {
     request.body.asJson flatMap { body: JsValue =>
-       (body \ key).asOpt[String]
+      (body \ key).asOpt[String]
     }
   }
 
@@ -40,6 +44,22 @@ object Common {
     } else {
       file.exists
     }
+  }
+
+  /**
+    * List all files in a directory, including subdirectories, recursively.
+    */
+  def listFilesTree(dir: File): Array[File] = {
+    val these = dir.listFiles
+    these ++ these.filter(_.isDirectory).flatMap(listFilesTree)
+  }
+  /**
+    * Find all files with extension ".<extension>" in the given path.
+    */
+  def findInTree(path: String, extension: String): Array[File] = {
+    val dir = Paths.get(path).toFile
+    val regex = """.*\.""" + Regex.quote(extension) + """$"""
+    listFilesTree(dir).filter(f => regex.r.findFirstIn(f.getName).isDefined)
   }
 
 }
