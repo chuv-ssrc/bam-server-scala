@@ -24,7 +24,7 @@ trait WithToken {
   //  FakeRequest(method, url).withHeaders(admin.authHeader)
 
   val testkey = "testkey"
-  val notherekey = "nottherekey"
+  val notherekey = "notherekey"
   val inactivekey = "inactivekey"
 
 }
