@@ -33,12 +33,12 @@ object AuthenticatedAction extends ActionBuilder[AuthenticatedRequest] {
   }
 
   def jwtFromUrlParam[A](request: Request[A]): Option[String] = {
-    println(request.uri)
-    Some(request.uri)
+    request.getQueryString("token")
   }
 
   def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]) = {
-    jwtFromAuthHeader(request) match {
+    val maybeJwt: Option[String] = jwtFromAuthHeader(request) orElse jwtFromUrlParam(request)
+    maybeJwt match {
       case None =>
         Logger.debug("No Authorization header")
         Future.successful(Unauthorized("No Authorization header"))

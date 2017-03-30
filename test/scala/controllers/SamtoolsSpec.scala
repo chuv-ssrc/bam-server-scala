@@ -21,7 +21,6 @@ class SamtoolsSpec extends PlaySpec with OneAppPerSuite with WithToken {
 
     "Return everything if no region is given (POST)" in {
       assume(samtoolsExists())
-      val headers = (AUTHORIZATION -> s"Bearer $auth0Token")
       val request = FakeAuthorizedRequest(POST, "/bam/samtools").withJsonBody(body)
       val response = route(app, request).get
       status(response) mustBe OK
@@ -37,7 +36,15 @@ class SamtoolsSpec extends PlaySpec with OneAppPerSuite with WithToken {
 
     "provide a slice of the BAM if a region is given (GET)" in {
       assume(samtoolsExists())
-      val request = FakeAuthorizedRequest(GET, s"/bam/samtools/$testkey?token=$auth0Token&region=chr1:761997-762551")
+      val request = FakeAuthorizedRequest(GET, s"/bam/samtools/$testkey?region=chr1:761997-762551")
+      val response = route(app, request).get
+      status(response) mustBe OK
+      contentAsBytes(response).length must be > 100000
+    }
+
+    "provide a slice of the BAM if a region is given, with token in URL (GET)" in {
+      assume(samtoolsExists())
+      val request = FakeRequest(GET, s"/bam/samtools/$testkey?token=$auth0Token&region=chr1:761997-762551")
       val response = route(app, request).get
       status(response) mustBe OK
       contentAsBytes(response).length must be > 100000

@@ -78,7 +78,13 @@ class IndexSpec extends PlaySpec with OneAppPerSuite with WithToken {
     }
 
     "provide the BAM index if everything is right (GET)" in {
-      val response = route(app, FakeAuthorizedRequest(GET, s"/bai/$testkey?token=$auth0Token")).get
+      val response = route(app, FakeAuthorizedRequest(GET, s"/bai/$testkey")).get
+      status(response) mustBe OK
+      contentType(response).get mustBe BINARY
+    }
+
+    "provide the BAM index if everything is right, with token in URL (GET)" in {
+      val response = route(app, FakeRequest(GET, s"/bai/$testkey?token=$auth0Token")).get
       status(response) mustBe OK
       contentType(response).get mustBe BINARY
     }
