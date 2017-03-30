@@ -46,7 +46,7 @@ class JsonSpec extends PlaySpec with OneAppPerSuite with WithToken {
     }
 
     "provide reads in JSON format if a region is given (GET)" in {
-      val request = FakeAuthorizedRequest(GET, s"/bam/json/$testkey/$auth0Token?region=chr1:761997-762200")
+      val request = FakeAuthorizedRequest(GET, s"/bam/json/$testkey?token=$auth0Token&region=chr1:761997-762200")
       val response = route(app, request).get
       status(response) mustBe OK
       contentType(response) must be(Some(JSON))
@@ -56,7 +56,7 @@ class JsonSpec extends PlaySpec with OneAppPerSuite with WithToken {
     }
 
     "return all reads if the region is very wide (GET)" in {
-      val request = FakeAuthorizedRequest(GET, s"/bam/json/$testkey/$auth0Token?region=chr1:0-10000000")
+      val request = FakeAuthorizedRequest(GET, s"/bam/json/$testkey?token=$auth0Token&region=chr1:0-10000000")
       val response = route(app, request).get
       status(response) mustBe OK
       contentType(response) must be(Some(JSON))
@@ -64,7 +64,7 @@ class JsonSpec extends PlaySpec with OneAppPerSuite with WithToken {
     }
 
     "return an empty array if the region is outside of scope (GET)" in {
-      val request = FakeAuthorizedRequest(GET, s"/bam/json/$testkey/$auth0Token?region=chr1:99761997-99762551")
+      val request = FakeAuthorizedRequest(GET, s"/bam/json/$testkey?token=$auth0Token&region=chr1:99761997-99762551")
       val response = route(app, request).get
       status(response) mustBe OK
       contentType(response) must be(Some(JSON))

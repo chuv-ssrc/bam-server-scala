@@ -55,13 +55,13 @@ class IndexSpec extends PlaySpec with OneAppPerSuite with WithToken {
     }
 
     "fail if the key is not known to the database (GET)" in {
-      val response = route(app, FakeAuthorizedRequest(GET, s"/bai/xxx/$auth0Token")).get
+      val response = route(app, FakeAuthorizedRequest(GET, s"/bai/xxx?token=$auth0Token")).get
       status(response) mustBe INTERNAL_SERVER_ERROR
       contentAsString(response) must startWith("No corresponding BAM file")
     }
 
     "fail if the key exists but the bam file is not found (GET)" in {
-      val response = route(app, FakeAuthorizedRequest(GET, s"/bai/notherekey/$auth0Token")).get
+      val response = route(app, FakeAuthorizedRequest(GET, s"/bai/notherekey?token=$auth0Token")).get
       status(response) mustBe INTERNAL_SERVER_ERROR
       contentAsString(response) must startWith("This BAM file cannot be found")
     }
@@ -78,7 +78,8 @@ class IndexSpec extends PlaySpec with OneAppPerSuite with WithToken {
     }
 
     "provide the BAM index if everything is right (GET)" in {
-      val response = route(app, FakeAuthorizedRequest(GET, s"/bai/$testkey/$auth0Token")).get
+      val response = route(app, FakeAuthorizedRequest(GET, s"/bai/$testkey?token=$auth0Token")).get
+      println(contentAsString(response))
       status(response) mustBe OK
       contentType(response).get mustBe BINARY
     }

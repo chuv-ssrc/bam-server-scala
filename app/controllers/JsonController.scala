@@ -48,7 +48,7 @@ class JsonController @Inject()(db: Database, config: Configuration) extends BamQ
     }
   }
 
-  def bamGet(sampleKey: String, token: String, region: Option[String]) = AuthenticatedAction { implicit request =>
+  def bamGet(sampleKey: String, token: Option[String], region: Option[String]) = AuthenticatedAction { implicit request =>
     keyToBamRequest(sampleKey) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)

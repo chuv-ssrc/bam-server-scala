@@ -31,10 +31,10 @@ class IndexController @Inject()(db: Database, config: Configuration) extends Bam
     }
   }
 
-  def baiGet(sampleKey: String, token: String) = AuthenticatedAction { implicit request =>
+  def baiGet(sampleKey: String, token: Option[String]) = AuthenticatedAction { implicit request =>
     keyToBamRequest(sampleKey) match {
       case Failure(err) =>
-        //Logger.debug(err.getMessage)
+        // Logger.debug(err.getMessage)
         InternalServerError(err.getMessage)
       case Success(br: BamRequest) =>
         getBamIndex(br)

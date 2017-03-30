@@ -27,14 +27,22 @@ class AuthenticatedRequest[A](val user: User, request: Request[A]) extends Wrapp
   * If there is no User, return status is Unauthorized (401).
   */
 object AuthenticatedAction extends ActionBuilder[AuthenticatedRequest] {
+
+  def jwtFromAuthHeader[A](request: Request[A]): Option[String] = {
+    request.headers.get(AUTHORIZATION) map (_.split(" ").last)  // remove "Bearer" prefix
+  }
+
+  def jwtFromUrlParam[A](request: Request[A]): Option[String] = {
+    println(request.uri)
+    Some(request.uri)
+  }
+
   def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]) = {
-    request.headers.get(AUTHORIZATION) match {
+    jwtFromAuthHeader(request) match {
       case None =>
         Logger.debug("No Authorization header")
         Future.successful(Unauthorized("No Authorization header"))
-      case Some(authHeader: String) =>
-        val jwt = authHeader.split(" ").last  // remove "Bearer" prefix
-
+      case Some(jwt: String) =>
         validateToken(jwt, "auth0") match {
           case Failure(err) =>
             Logger.debug("Failed token validation: "+ err.getMessage)

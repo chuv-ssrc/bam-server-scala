@@ -37,7 +37,7 @@ class SamtoolsSpec extends PlaySpec with OneAppPerSuite with WithToken {
 
     "provide a slice of the BAM if a region is given (GET)" in {
       assume(samtoolsExists())
-      val request = FakeAuthorizedRequest(GET, s"/bam/samtools/$testkey/$auth0Token?region=chr1:761997-762551")
+      val request = FakeAuthorizedRequest(GET, s"/bam/samtools/$testkey?token=$auth0Token&region=chr1:761997-762551")
       val response = route(app, request).get
       status(response) mustBe OK
       contentAsBytes(response).length must be > 100000
