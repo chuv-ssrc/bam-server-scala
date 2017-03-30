@@ -9,7 +9,7 @@ import play.api.db.Database
 import play.api.mvc._
 import utils.BamUtils._
 import utils.Common._
-
+import auth.AuthenticatedAction
 import scala.util.{Failure, Success}
 
 
@@ -21,10 +21,10 @@ class IndexController @Inject()(db: Database, config: Configuration) extends Bam
 
   //------------------ Actions -------------------//
 
-  def baiPost = Action { implicit request =>
+  def baiPost = AuthenticatedAction { implicit request =>
     parseBamRequestFromPost(request) match {
       case Failure(err) =>
-        //Logger.debug(err.getMessage)
+        // Logger.debug(err.getMessage)
         InternalServerError(err.getMessage)
       case Success(br: BamRequest) =>
         getBamIndex(br)

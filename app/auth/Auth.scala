@@ -14,10 +14,6 @@ import auth.RSA._
 
 object Auth {
 
-//  def decodeJWT_RSA(jwt: String, secret: String): Try[JsObject] = {
-//    JwtJson.decodeJson(jwt, secret, Seq(JwtAlgorithm.RS256))
-//  }
-
   def getPublicKey(appName: String, path: String = "resources/rsa_keys"): PublicKey = {
     findInTree(path, "cer") find {_.getName.contains(appName)} map {
       cert: File => readPublicKeyFromCertificate(cert.getPath)
@@ -30,13 +26,13 @@ object Auth {
     }
   }
 
-  def validateToken(jwt: String, appName: String): User = {
+  def validateToken(jwt: String, appName: String): Try[User] = {
     val publicKey = getPublicKey(appName)
-    JwtJson.decodeJson(jwt, publicKey, Seq(JwtAlgorithm.RS256)) match {
-      case Success(claim: JsObject) =>
-        println(claim)
-        claim.as[User]
-      case Failure(err) => throw new IllegalArgumentException(err.getMessage)
+    JwtJson.decodeJson(jwt, publicKey, Seq(JwtAlgorithm.RS256)) flatMap {
+       claim => claim.asOpt[User] match {
+         case None => Failure(new IllegalArgumentException("Could not cast JWT body/claim to case class User"))
+         case Some(x) => Success(x)
+       }
     }
   }
 

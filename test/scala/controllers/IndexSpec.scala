@@ -4,37 +4,34 @@ import org.scalatestplus.play._
 import play.api.libs.json._
 import play.api.test.Helpers._
 import play.api.test._
+import scala.setup.WithToken
 
 
 /**
   * Test IndexController.
   */
-class IndexSpec extends PlaySpec with OneAppPerSuite {
-
-  val token = "asdf"
-  val testkey = "testkey"
-  val header = (AUTHORIZATION, s"Bearer $token")
+class IndexSpec extends PlaySpec with OneAppPerSuite with WithToken {
 
   /*
-    This first part should vertainly be tested outside of the IndexController scope. For instance:
+    This first part should certainly be tested outside of the IndexController scope. For instance:
 
       import org.scalatest.mock.MockitoSugar
       class BamQuerySpec extends PlaySpec with MockitoSugar {
-        val ctrl = new BamController(mock[Database])
+        val ctrl = new BamQueryController(mock[Database])
       }
    */
 
   "`parseBamRequestFromPost`" should {
 
     "fail if there is no JSON body" in {
-      val response = route(app, FakeRequest(POST, "/bai").withHeaders(header)).get
+      val response = route(app, FakeAuthorizedRequest(POST, "/bai")).get
       status(response) mustBe INTERNAL_SERVER_ERROR
       contentAsString(response) must startWith("No key found in request body")
     }
 
     "fail if there is no 'key' in the body" in {
       val body: JsValue = Json.parse(s"""{"yyyy": "xxx"}""")
-      val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
+      val response = route(app, FakeAuthorizedRequest(POST, "/bai").withJsonBody(body)).get
       status(response) mustBe INTERNAL_SERVER_ERROR
       contentAsString(response) must startWith("No key found in request body")
     }
@@ -45,26 +42,26 @@ class IndexSpec extends PlaySpec with OneAppPerSuite {
 
     "fail if the key is not known to the database (POST)" in {
       val body: JsValue = Json.parse(s"""{"key": "xxx"}""")
-      val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
+      val response = route(app, FakeAuthorizedRequest(POST, "/bai").withJsonBody(body)).get
       status(response) mustBe INTERNAL_SERVER_ERROR
       contentAsString(response) must startWith("No corresponding BAM file")
     }
 
     "fail if the key exists but the bam file is not found on disk (POST)" in {
       val body: JsValue = Json.parse(s"""{"key": "notherekey"}""")
-      val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
+      val response = route(app, FakeAuthorizedRequest(POST, "/bai").withJsonBody(body)).get
       status(response) mustBe INTERNAL_SERVER_ERROR
       contentAsString(response) must startWith("This BAM file cannot be found")
     }
 
     "fail if the key is not known to the database (GET)" in {
-      val response = route(app, FakeRequest(GET, s"/bai/xxx/$token")).get
+      val response = route(app, FakeAuthorizedRequest(GET, s"/bai/xxx/$auth0Token")).get
       status(response) mustBe INTERNAL_SERVER_ERROR
       contentAsString(response) must startWith("No corresponding BAM file")
     }
 
     "fail if the key exists but the bam file is not found (GET)" in {
-      val response = route(app, FakeRequest(GET, s"/bai/notherekey/$token")).get
+      val response = route(app, FakeAuthorizedRequest(GET, s"/bai/notherekey/$auth0Token")).get
       status(response) mustBe INTERNAL_SERVER_ERROR
       contentAsString(response) must startWith("This BAM file cannot be found")
     }
@@ -75,13 +72,13 @@ class IndexSpec extends PlaySpec with OneAppPerSuite {
 
     "provide the BAM index if everything is right (POST)" in {
       val body: JsValue = Json.parse(s"""{"key": "$testkey"}""")
-      val response = route(app, FakeRequest(POST, "/bai").withJsonBody(body).withHeaders(header)).get
+      val response = route(app, FakeAuthorizedRequest(POST, "/bai").withJsonBody(body)).get
       status(response) mustBe OK
       contentType(response).get mustBe BINARY  // application/octet-stream
     }
 
     "provide the BAM index if everything is right (GET)" in {
-      val response = route(app, FakeRequest(GET, s"/bai/$testkey/$token")).get
+      val response = route(app, FakeAuthorizedRequest(GET, s"/bai/$testkey/$auth0Token")).get
       status(response) mustBe OK
       contentType(response).get mustBe BINARY
     }
