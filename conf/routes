@@ -7,19 +7,19 @@ GET /                                     controllers.HomeController.index
 
 # Get BAM index
 POST /bai                                 controllers.IndexController.baiPost
-GET /bai/:sampleKey                       controllers.IndexController.baiGet(sampleKey: String, token: Option[String])
+GET /bai/:sample                          controllers.IndexController.baiGet(sample: String, token: Option[String])
 
 # Read bytes fom BAM with 'Range' header
 POST /bam/range                           controllers.RangeController.bamPost()
-GET /bam/range/:sampleKey                 controllers.RangeController.bamGet(sampleKey: String, token: Option[String], range: Option[String])
+GET /bam/range/:sample                    controllers.RangeController.bamGet(sample: String, token: Option[String], range: Option[String])
 
 # Read BAM using samtools
 POST /bam/samtools                        controllers.SamtoolsController.bamPost(region: Option[String])
-GET /bam/samtools/:sampleKey              controllers.SamtoolsController.bamGet(sampleKey: String, token: Option[String], region: Option[String])
+GET /bam/samtools/:sample                 controllers.SamtoolsController.bamGet(sample: String, token: Option[String], region: Option[String])
 
 # Return JSON-formatted reads
 POST /bam/json                            controllers.JsonController.bamPost(region: Option[String])
-GET /bam/json/:sampleKey                  controllers.JsonController.bamGet(sampleKey: String, token: Option[String], region: Option[String])
+GET /bam/json/:sample                     controllers.JsonController.bamGet(sample: String, token: Option[String], region: Option[String])
 
 
 

@@ -81,7 +81,7 @@ The fields correspond to the SAM file columns:
     ]
     
 All requests expect an Authorization header to be added to the request,
-with a Bearer token (JWT) that once base64-decoded, contains the user
+with a RSA256-signed Bearer token (JWT) that once base64-decoded, contains the user
 identifer under the claim `"name"`. For example:
 
     curl -i -H "Authorization: Bearer xxxx.yyyy.zzzz" -X POST -d '{"sample": "SAMPLE1"} http://localhost:9000/bai

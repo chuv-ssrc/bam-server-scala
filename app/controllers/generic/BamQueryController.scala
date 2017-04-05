@@ -38,12 +38,12 @@ class BamQueryController @Inject()(db: Database, config: Configuration) extends 
     * Check that the file it refers to exists/is readable on disk;
     * If so, return a Success(BamRequest).
     */
-  def keyToBamRequest(sampleKey: String): Try[BamRequest] = {
-    val bamFilename: String = getBamName(db, sampleKey)
+  def keyToBamRequest(sample: String): Try[BamRequest] = {
+    val bamFilename: String = getBamName(db, sample)
     val bamPath: Path = Paths.get(BAM_PATH, bamFilename)
     val indexPath: Path = Paths.get(BAM_PATH, bamFilename + ".bai")
     if (bamFilename.isEmpty) {
-      Failure(new Exception(s"No corresponding BAM file for key $sampleKey in database."))
+      Failure(new Exception(s"No corresponding BAM file for key $sample in database."))
     } else if (!isOnDisk(bamPath.toFile)) {
     //} else if (!bamPath.toFile.exists) {
       Failure(new Exception(s"This BAM file cannot be found at BAM_PATH=$BAM_PATH."))
