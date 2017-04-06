@@ -5,7 +5,7 @@
 CREATE TABLE `apps` (
     `id` INTEGER(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `iss` VARCHAR(255) NOT NULL,
-    `name` VARCHAR(255) NOT NULL,
+    `keyFile` VARCHAR(255) NOT NULL,
     `description` VARCHAR(255) DEFAULT NULL,
 );
 
@@ -13,6 +13,7 @@ CREATE TABLE `users` (
     `id` INTEGER(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `app_id` INTEGER(11) DEFAULT NULL,
     `username` VARCHAR(255) NOT NULL,
+    `group` VARCHAR(255) DEFAULT NULL,
     `isActive` TINYINT(1) DEFAULT 0,
     `isAdmin` TINYINT(1) DEFAULT 0,
     FOREIGN KEY (`app_id`) REFERENCES `apps`(`id`),
@@ -22,10 +23,11 @@ CREATE TABLE `bam` (
     `id` INTEGER(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
     `sample` VARCHAR(255) NOT NULL,
     `filename` VARCHAR(255) NOT NULL,
+    `project` VARCHAR(255) DEFAULT NULL,
     `hash` VARCHAR(255) DEFAULT NULL,
     `description` VARCHAR(255) DEFAULT NULL,
-    `ondisk` TINYINT(1) DEFAULT NULL,
-    `active` TINYINT(1) NOT NULL DEFAULT 0
+    `isOndisk` TINYINT(1) DEFAULT NULL,
+    `isActive` TINYINT(1) NOT NULL DEFAULT 0
 );
 
 CREATE TABLE `users_bam` (
@@ -37,15 +39,16 @@ CREATE TABLE `users_bam` (
 );
 
 
-INSERT INTO `apps` VALUES (1, 'https://jdelafon.eu.auth0.com/', 'auth0', NULL);
+INSERT INTO `apps` VALUES (1, 'https://jdelafon.eu.auth0.com/', 'auth0.cer', 'using a public certificate in .cer format');
+INSERT INTO `apps` VALUES (2, 'test', 'id_rsa.pub', 'using only a public key in .pem format');
 
-INSERT INTO `users` VALUES (1,1, 'testuser', 1, 0);
-INSERT INTO `users` VALUES (2,1, 'admin', 1, 1);
-INSERT INTO `users` VALUES (3,1, 'julien.delafontaine@yandex.com', 1, 0);
+INSERT INTO `users` VALUES (1,1, 'testuser', NULL, 1, 0);
+INSERT INTO `users` VALUES (2,1, 'admin', NULL, 1, 1);
+INSERT INTO `users` VALUES (3,1, 'julien.delafontaine@yandex.com', NULL, 1, 0);
 
-INSERT INTO `bam` VALUES (1, 'testkey', 'test.bam', NULL, NULL, NULL, 1);
-INSERT INTO `bam` VALUES (2, 'notherekey', 'nothere.bam', NULL, NULL, NULL, 1);
-INSERT INTO `bam` VALUES (3, 'inactivekey', 'inactive.bam', NULL, NULL, NULL, 0);
+INSERT INTO `bam` VALUES (1, 'testkey', 'test.bam', NULL, NULL, NULL, NULL, 1);
+INSERT INTO `bam` VALUES (2, 'notherekey', 'nothere.bam', NULL, NULL, NULL, NULL, 1);
+INSERT INTO `bam` VALUES (3, 'inactivekey', 'inactive.bam', NULL, NULL, NULL, NULL, 0);
 
 INSERT INTO `users_bam` VALUES (1, 1, 1);
 INSERT INTO `users_bam` VALUES (2, 1, 2);

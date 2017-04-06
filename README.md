@@ -14,7 +14,7 @@ The goal is to provide
 3. Compatibility with any OAuth2-based authorization server.
 
 Bam-server is written in Scala using the Play framework, and in itself represents only
-the resource server in the OAuth2 diagram. It communicates with a local MySQL database
+the resource server in the OAuth2 diagram. It communicates with a local database
 that maps each BAM file name with the corresponding sample identifier.
 
 Functionalities
@@ -133,9 +133,23 @@ identifer under claim `"name"` and the app identifier under claim `"iss"`. For e
 For more details on JWTs, see [jwt.io](jwt.io).
 
 The client app/authorization server encrypts the JWT with its secret RSA private key.
-To verify it, the public key certificate (.cer, .crt, .pem) must be copied into 
+To verify it, the public key or public certificate (.cer, .pem) must be copied into 
 `resources/rsa_keys`. The `apps` table matches the "iss" claim with the name of the
 public certificate.
+
+Public keys in PEM format look like this:
+
+> -----BEGIN RSA PUBLIC KEY-----
+> MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAK7ttYaE/1ldsb0OJQDQhhDWqwuFWIyt
+> xgYIJH1HYA4UpA/Nm24fERIA1xi2Pomep6VTnQ/ThFP5hn2NyITwCIsCAwEAAQ==
+> -----END RSA PUBLIC KEY-----
+
+Certificates in CER format look like this:
+
+> -----BEGIN CERTIFICATE-----
+> MIIC8jCCAdqgAwIBAgIJY0fhkAkJqc1YMA0GCSqGSIb3DQEBBQUAMCAxHjAcBgNV
+> ...
+> -----END CERTIFICATE-----
 
 The authorization process then works as follows:
 
@@ -143,7 +157,9 @@ The authorization process then works as follows:
    to make sure he is registered.
 
 2. The app name ("iss") is matched against the `apps` table in the database,
-   so as to retreive the corresponding RSA public key.
+   so as to retreive the corresponding RSA public key file. 
+   The `resources/rsa_keys/` directory is scanned recursively for .cer/.pem files,
+   and when one is found with the right name, it is parsed to get the public key.
   
 3. The JWT is verified using the public key.
 

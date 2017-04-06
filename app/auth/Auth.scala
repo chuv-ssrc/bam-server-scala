@@ -17,11 +17,11 @@ import play.api.db.Database
 @Singleton
 class Auth @Inject()(db: Database) {
 
-  private def getPublicKey(appName: String, path: String = "resources/rsa_keys"): PublicKey = {
-    findInTree(path, "cer") find {_.getName.contains(appName)} map {
+  private def getPublicKey(keyFile: String, path: String = "resources/rsa_keys"): PublicKey = {
+    findInTree(path, "cer") find {_.getName == keyFile} map {
       cert: File => readPublicKeyFromCertificate(cert.getPath)
     } getOrElse {
-      findInTree(path, "pem") find {_.getName.contains(appName)} map {
+      findInTree(path, "pem") find {_.getName == keyFile} map {
         keyFile: File => readPublicKeyFromPemFile(keyFile.getPath)
       } getOrElse {
         throw new IllegalArgumentException("Could not find a suitable RSA public key in either .cer or .pem file.")
@@ -43,14 +43,14 @@ class Auth @Inject()(db: Database) {
 
   private def appFromDatabase(iss: String): (Int, String) = {
     db.withConnection { conn =>
-      val statement = conn.prepareStatement("SELECT `id`,`name` FROM `apps` WHERE `iss`=?;")
+      val statement = conn.prepareStatement("SELECT `id`,`keyFile` FROM `apps` WHERE `iss`=?;")
       statement.setString(1, iss)
       val result = statement.executeQuery()
       var res: Option[(Int, String)] = None
       while (result.next()) {
         val appId = result.getInt("id")
-        val appName = result.getString("name")
-        res = Some((appId, appName))
+        val keyFile = result.getString("keyFile")
+        res = Some((appId, keyFile))
       }
       res getOrElse {
         throw new IllegalArgumentException("Could not find an app with this 'iss' identifer in database")
@@ -84,9 +84,9 @@ class Auth @Inject()(db: Database) {
       for {
         iss <- Try(issFromClaim(claim))
         username <- Try(userFromClaim(claim))
-        (appId, appName) <- Try(appFromDatabase(iss))
+        (appId, keyFile) <- Try(appFromDatabase(iss))
         user <- Try(userFromDatabase(username, appId))
-        publicKey <- Try(getPublicKey(appName))
+        publicKey <- Try(getPublicKey(keyFile))
       } yield {
         // Now validate the token with the public key
         // Raises an error if the validation fails
