@@ -142,7 +142,7 @@ The authorization process then works as follows:
 1. The user ("name") is matched against the `users` table in the database
    to make sure he is registered.
 
-2. The app name ("iss") will be matched against the `apps` table in the database,
+2. The app name ("iss") is matched against the `apps` table in the database,
    so as to retreive the corresponding RSA public key.
   
 3. The JWT is verified using the public key.
@@ -215,14 +215,15 @@ Example of usage with Auth0
 (for free if you have few users and usual requirements). 
 Its only role is to identify users of the client app and return valid tokens. 
 
-1. First time set up 
+1. First time setup 
 
     1. Create an Auth0 account
 
     2. Create a new client app, say "bam-server". It is given a Client ID and a Client secret.
     
     3. Go to "Clients > Show advanced settings". In the "OAuth" tab, choose "RS256". This changes
-       the encryption protocol from the default HMAC to RSA.
+       the encryption protocol from the default HMAC (symmetric, shared secret) 
+       to RSA (asymmetric private/public - more secure).
        
     4. Still in the advanced settings, copy the public certificate from "Certificates > Signing Certificate",
        or download it in CER/PEM format.
@@ -232,9 +233,9 @@ Its only role is to identify users of the client app and return valid tokens.
 
 2. Obtain a token (for testing; the client app is out of this scope)
 
-    1. Let's say your client web app is served as localhost:3000
+    1. Let's say your client web app is served as localhost:3000.
     
-    2. Add "localhost:3000" to Auth0 "Clients > Allowed callback URLs"
+    2. Add "localhost:3000" to Auth0 "Clients > Allowed callback URLs".
     
     3. Point your browser to 
          
@@ -245,10 +246,14 @@ Its only role is to identify users of the client app and return valid tokens.
                &redirect_uri=localhost:3000
                &nonce=1234&state=1234
 
-       where you replace <domain> and <client_id> by your own Auth0 client settings.
+       where you replace `<domain>` and `<client_id>` by your own Auth0 client settings.
        
     4. Log in; you get redirected to localhost:3000/ and you can find an "id_token" in the url.
-       This is a JWT that bam-server accepts (*not* "access_token"). 
+       This is a JWT that bam-server accepts (*not* "access_token"). For instance:
+       
+       > http://localhost:3000/#access_token=ZVvVzzBIucYdhnW3&expires_in=86400  
+           &id_token=xxxxxxx.yyyyyyy.zzzzzzz  
+           &token_type=Bearer&state=1234  
 
 3. Prepare the database
 
