@@ -251,7 +251,7 @@ Its only role is to identify users of the client app and return valid tokens.
     4. Log in; you get redirected to localhost:3000/ and you can find an "id_token" in the url.
        This is a JWT that bam-server accepts (*not* "access_token"). For instance:
        
-       > http://localhost:3000/#access_token=ZVvVzzBIucYdhnW3&expires_in=86400&id_token=**xxxxxxx.yyyyyyy.zzzzzzz**&token_type=Bearer&state=1234  
+       > http://<i></i>localhost:3000/#access_token=ZVvVzzBIucYdhnW3&expires_in=86400&id_token=**xxxxxxx.yyyyyyy.zzzzzzz**&token_type=Bearer&state=1234  
 
 3. Prepare the database
 
