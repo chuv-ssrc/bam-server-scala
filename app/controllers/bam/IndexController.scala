@@ -1,15 +1,16 @@
-package controllers
+package controllers.bam
 
 import javax.inject._
 
+import auth.AuthenticatedAction
 import controllers.generic.BamQueryController
 import models.BamRequest
-import play.api.{Configuration, Logger}
+import play.api.Configuration
 import play.api.db.Database
 import play.api.mvc._
 import utils.BamUtils._
 import utils.Common._
-import auth.AuthenticatedAction
+
 import scala.util.{Failure, Success}
 
 

@@ -6,20 +6,23 @@
 GET /                                     controllers.HomeController.index
 
 # Get BAM index
-POST /bai                                 controllers.IndexController.baiPost
-GET /bai/:sample                          controllers.IndexController.baiGet(sample: String, token: Option[String])
+POST /bai                                 controllers.bam.IndexController.baiPost
+GET /bai/:sample                          controllers.bam.IndexController.baiGet(sample: String, token: Option[String])
 
 # Read bytes fom BAM with 'Range' header
-POST /bam/range                           controllers.RangeController.bamPost()
-GET /bam/range/:sample                    controllers.RangeController.bamGet(sample: String, token: Option[String], range: Option[String])
+POST /bam/range                           controllers.bam.RangeController.bamPost()
+GET /bam/range/:sample                    controllers.bam.RangeController.bamGet(sample: String, token: Option[String], range: Option[String])
 
 # Read BAM using samtools
-POST /bam/samtools                        controllers.SamtoolsController.bamPost(region: Option[String])
-GET /bam/samtools/:sample                 controllers.SamtoolsController.bamGet(sample: String, token: Option[String], region: Option[String])
+POST /bam/samtools                        controllers.bam.SamtoolsController.bamPost(region: Option[String])
+GET /bam/samtools/:sample                 controllers.bam.SamtoolsController.bamGet(sample: String, token: Option[String], region: Option[String])
 
 # Return JSON-formatted reads
-POST /bam/json                            controllers.JsonController.bamPost(region: Option[String])
-GET /bam/json/:sample                     controllers.JsonController.bamGet(sample: String, token: Option[String], region: Option[String])
+POST /bam/json                            controllers.bam.JsonController.bamPost(region: Option[String])
+GET /bam/json/:sample                     controllers.bam.JsonController.bamGet(sample: String, token: Option[String], region: Option[String])
+
+
+PUT /users                                controllers.UsersController.addUsers()
 
 
 

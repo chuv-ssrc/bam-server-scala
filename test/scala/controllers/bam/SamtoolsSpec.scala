@@ -1,10 +1,11 @@
-package scala.controllers
+package scala.controllers.bam
 
 import org.scalatestplus.play._
 import play.api.libs.json._
 import play.api.test.Helpers._
 import play.api.test._
 import utils.BamUtils.samtoolsExists
+
 import scala.setup.WithToken
 
 

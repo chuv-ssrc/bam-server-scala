@@ -1,4 +1,4 @@
-package controllers
+package controllers.bam
 
 import javax.inject.{Inject, _}
 
@@ -7,11 +7,10 @@ import controllers.generic.BamQueryController
 import models.BamRequest
 import play.api.Configuration
 import play.api.db.Database
-import play.api.mvc._
 import utils.BamUtils.samtoolsExists
 
+import scala.sys.process._
 import scala.util.{Failure, Success}
-import sys.process._
 
 
 /**

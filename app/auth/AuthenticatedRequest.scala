@@ -41,12 +41,12 @@ class AuthenticatedAction @Inject()(db: Database) extends ActionBuilder[Authenti
 
   def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]) = {
     val maybeJwt: Option[String] = jwtFromAuthHeader(request) orElse jwtFromUrlParam(request)
-    val Auth = new Auth(db)
     maybeJwt match {
       case None =>
         Logger.debug("No Authorization header")
         Future.successful(Unauthorized("No Authorization header"))
       case Some(jwt: String) =>
+        val Auth = new Auth(db)
         Auth.validateToken(jwt, db) match {
           case Failure(err) =>
             Logger.debug("Failed token validation: "+ err.getMessage)
@@ -61,3 +61,13 @@ class AuthenticatedAction @Inject()(db: Database) extends ActionBuilder[Authenti
     }
   }
 }
+
+//@Singleton
+//class Admin @Inject()(db: Database) extends AuthenticatedAction(db) {
+//
+//  override def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]) = {
+//    super.invokeBlock[A](request, block)
+//  }
+//
+//}
+

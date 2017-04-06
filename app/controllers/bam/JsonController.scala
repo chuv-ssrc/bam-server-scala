@@ -1,4 +1,4 @@
-package controllers
+package controllers.bam
 
 import javax.inject.{Inject, _}
 
@@ -9,11 +9,10 @@ import models.BamRequest
 import play.api.Configuration
 import play.api.db.Database
 import play.api.libs.json._
-import play.api.mvc._
+import utils.JsonUtils.anyWrites
 
 import scala.collection.mutable.ArrayBuffer
 import scala.util.{Failure, Success}
-import utils.JsonUtils.anyWrites
 
 
 /**

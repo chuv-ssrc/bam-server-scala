@@ -1,4 +1,4 @@
-package controllers
+package controllers.bam
 
 import javax.inject.{Inject, _}
 
