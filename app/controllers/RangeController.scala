@@ -22,6 +22,8 @@ import scala.util.{Failure, Success}
 @Singleton
 class RangeController @Inject()(db: Database, config: Configuration) extends BamQueryController(db, config) {
 
+  def AuthenticatedAction = new AuthenticatedAction(db)
+
   //------------------ Actions -------------------//
 
   def bamPost() = AuthenticatedAction { implicit request =>

@@ -22,6 +22,8 @@ import sys.process._
 @Singleton
 class SamtoolsController @Inject()(db: Database, config: Configuration) extends BamQueryController(db, config) {
 
+  def AuthenticatedAction = new AuthenticatedAction(db)
+
   //------------------ Actions -------------------//
 
   def bamPost(region: Option[String]) = AuthenticatedAction { implicit request =>

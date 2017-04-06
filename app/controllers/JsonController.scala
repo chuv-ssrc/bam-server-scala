@@ -36,6 +36,8 @@ import utils.JsonUtils.anyWrites
 @Singleton
 class JsonController @Inject()(db: Database, config: Configuration) extends BamQueryController(db, config) {
 
+  def AuthenticatedAction = new AuthenticatedAction(db)
+
   //------------------ Actions -------------------//
 
   def bamPost(region: Option[String]) = AuthenticatedAction { implicit request =>
