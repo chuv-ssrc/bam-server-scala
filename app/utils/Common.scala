@@ -53,6 +53,7 @@ object Common {
     val these = dir.listFiles
     these ++ these.filter(_.isDirectory).flatMap(listFilesTree)
   }
+
   /**
     * Find all files with extension ".<extension>" in the given path.
     */

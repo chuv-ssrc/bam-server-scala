@@ -18,9 +18,11 @@ import play.api.db.Database
 class Auth @Inject()(db: Database) {
 
   private def getPublicKey(keyFile: String, path: String = "resources/rsa_keys"): PublicKey = {
+    /* Try to find a certificate in *path* with extension ".cer" */
     findInTree(path, "cer") find {_.getName == keyFile} map {
       cert: File => readPublicKeyFromCertificate(cert.getPath)
     } getOrElse {
+      /* Try to find a public key in *path* with extension ".pem" */
       findInTree(path, "pem") find {_.getName == keyFile} map {
         keyFile: File => readPublicKeyFromPemFile(keyFile.getPath)
       } getOrElse {
