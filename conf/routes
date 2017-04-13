@@ -22,8 +22,10 @@ POST /bam/json                            controllers.bam.JsonController.bamPost
 GET /bam/json/:sample                     controllers.bam.JsonController.bamGet(sample: String, token: Option[String], region: Option[String])
 
 
-PUT /users                                controllers.UsersController.addUsers()
-
+PUT /users                                controllers.management.UsersController.addUsers()
+DELETE /users                             controllers.management.UsersController.deleteUsers()
+PUT /samples                              controllers.management.SamplesController.addSamples()
+DELETE /samples                           controllers.management.SamplesController.deleteSamples()
 
 
 # (This was already here:)

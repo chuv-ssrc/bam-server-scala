@@ -20,8 +20,9 @@ trait WithToken {
     FakeRequest(method, url).withHeaders(auth0Header)
   }
 
-  //def FakeAdminRequest(method: String = GET, url: String) =
-  //  FakeRequest(method, url).withHeaders(admin.authHeader)
+  def FakeAdminRequest(method: String = GET, url: String) = {
+    FakeRequest(method, url).withHeaders(auth0Header)
+  }
 
   val testkey = "testkey"
   val notherekey = "notherekey"

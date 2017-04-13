@@ -43,7 +43,7 @@ object BamUtils {
     */
   def getBamName(db: Database, key: String): String = {
     db.withConnection { conn =>
-      val statement = conn.prepareStatement("SELECT `sample`,`filename` FROM bam WHERE `sample`=?;")
+      val statement = conn.prepareStatement("SELECT `name`,`filename` FROM `samples` WHERE `name`=?;")
       statement.setString(1, key)
       val res = statement.executeQuery()
       val filenames = ArrayBuffer.empty[String]

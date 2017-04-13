@@ -39,6 +39,10 @@ class AuthenticatedAction @Inject()(db: Database) extends ActionBuilder[Authenti
     request.getQueryString("token")
   }
 
+  def authorize(user: User): Boolean = {
+    user.isActive
+  }
+
   def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]) = {
     val maybeJwt: Option[String] = jwtFromAuthHeader(request) orElse jwtFromUrlParam(request)
     maybeJwt match {
@@ -52,7 +56,7 @@ class AuthenticatedAction @Inject()(db: Database) extends ActionBuilder[Authenti
             Logger.debug("Failed token validation: "+ err.getMessage)
             Future.successful(Unauthorized(err.getMessage))
           case Success(user: User) =>
-            if (!user.isActive) {
+            if (! authorize(user)) {
               Future.successful(Forbidden("This user requires validation by admin"))
             } else {
               block(new AuthenticatedRequest(user, request))
@@ -62,12 +66,13 @@ class AuthenticatedAction @Inject()(db: Database) extends ActionBuilder[Authenti
   }
 }
 
-//@Singleton
-//class Admin @Inject()(db: Database) extends AuthenticatedAction(db) {
-//
-//  override def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]) = {
-//    super.invokeBlock[A](request, block)
-//  }
-//
-//}
+
+@Singleton
+class AdminAction @Inject()(db: Database) extends AuthenticatedAction(db) {
+
+  override def authorize(user: User): Boolean = {
+    user.isActive && user.isAdmin
+  }
+
+}
 
