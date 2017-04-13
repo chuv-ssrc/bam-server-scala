@@ -21,11 +21,13 @@ GET /bam/samtools/:sample                 controllers.bam.SamtoolsController.bam
 POST /bam/json                            controllers.bam.JsonController.bamPost(region: Option[String])
 GET /bam/json/:sample                     controllers.bam.JsonController.bamGet(sample: String, token: Option[String], region: Option[String])
 
-
+# Add or remove users, samples, and attributions
 PUT /users                                controllers.management.UsersController.addUsers()
 DELETE /users                             controllers.management.UsersController.deleteUsers()
 PUT /samples                              controllers.management.SamplesController.addSamples()
 DELETE /samples                           controllers.management.SamplesController.deleteSamples()
+PUT /users_samples                        controllers.management.UsersSamplesController.addUsersSamples()
+DELETE /users_samples                     controllers.management.UsersSamplesController.deleteUsersSamples()
 
 
 # (This was already here:)

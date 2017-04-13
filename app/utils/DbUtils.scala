@@ -1,6 +1,9 @@
 package utils
 
+import java.sql.ResultSet
+
 import play.api.db.Database
+
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 

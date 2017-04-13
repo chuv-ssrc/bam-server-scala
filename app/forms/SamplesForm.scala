@@ -5,7 +5,7 @@ import play.api.libs.json.JsValue
 
 
 object SamplesForm {
-  def fromJson(j: JsValue, appId: Option[Int] = None): Sample = {
+  def fromJson(j: JsValue): Sample = {
     Sample(
       (j \ "name").as[String],
       (j \ "filename").as[String],

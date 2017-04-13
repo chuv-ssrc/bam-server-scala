@@ -50,9 +50,6 @@ INSERT INTO `samples` VALUES (1, 'testkey', 'test.bam', NULL, NULL, NULL, NULL, 
 INSERT INTO `samples` VALUES (2, 'notherekey', 'nothere.bam', NULL, NULL, NULL, NULL, 1);
 INSERT INTO `samples` VALUES (3, 'inactivekey', 'inactive.bam', NULL, NULL, NULL, NULL, 0);
 
-INSERT INTO `users_samples` VALUES (1, 1, 1);
-INSERT INTO `users_samples` VALUES (2, 1, 2);
-INSERT INTO `users_samples` VALUES (3, 1, 3);
 INSERT INTO `users_samples` VALUES (4, 2, 1);
 INSERT INTO `users_samples` VALUES (5, 2, 2);
 INSERT INTO `users_samples` VALUES (6, 2, 3);

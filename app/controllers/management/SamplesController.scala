@@ -19,15 +19,11 @@ class SamplesController @Inject()(db: Database) extends Controller {
   val AdminAction = new AdminAction(db)
 
   def samplesFromRequest(implicit request: AuthenticatedRequest[JsValue]): Seq[Sample] = {
-    // Get the app ID from the user executing the action;
-    //  he cannot add anything on behalf of another app anyway.
-    val appId = request.user.appId
-
     val samplesJs: JsArray = (request.body \ "samples").asOpt[JsArray] getOrElse {
       throw new IllegalArgumentException("Could not cast samples array from request body to JsArray")
     }
     val samples: Seq[Sample] = samplesJs.value map { sampleJs =>
-      Try (SamplesForm.fromJson(sampleJs, appId)) getOrElse {
+      Try (SamplesForm.fromJson(sampleJs)) getOrElse {
         throw new IllegalArgumentException("Could not cast sample from request body to Samples model")
       }
     }
