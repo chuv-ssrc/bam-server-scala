@@ -4,6 +4,7 @@ import javax.inject._
 
 import auth.AuthenticatedAction
 import controllers.generic.BamQueryController
+import scala.concurrent.ExecutionContext.Implicits.global
 import models.BamRequest
 import play.api.Configuration
 import play.api.db.Database
@@ -11,6 +12,7 @@ import play.api.mvc._
 import utils.BamUtils._
 import utils.Common._
 
+import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
 
@@ -24,21 +26,21 @@ class IndexController @Inject()(db: Database, config: Configuration) extends Bam
 
   //------------------ Actions -------------------//
 
-  def baiPost = AuthenticatedAction { implicit request =>
+  def baiPost = AuthenticatedAction.async { implicit request =>
     parseBamRequestFromPost(request) match {
       case Failure(err) =>
         // Logger.debug(err.getMessage)
-        InternalServerError(err.getMessage)
+        Future(InternalServerError(err.getMessage))
       case Success(br: BamRequest) =>
         getBamIndex(br)
     }
   }
 
-  def baiGet(sample: String, token: Option[String]) = AuthenticatedAction { implicit request =>
+  def baiGet(sample: String, token: Option[String]) = AuthenticatedAction.async { implicit request =>
     keyToBamRequest(sample) match {
       case Failure(err) =>
         // Logger.debug(err.getMessage)
-        InternalServerError(err.getMessage)
+        Future(InternalServerError(err.getMessage))
       case Success(br: BamRequest) =>
         getBamIndex(br)
     }
@@ -46,20 +48,26 @@ class IndexController @Inject()(db: Database, config: Configuration) extends Bam
 
   //--------------- Common code ----------------//
 
-  def getBamIndex(br: BamRequest)(implicit request: Request[AnyContent]): Result = {
+  /**
+    * Async because of `indexBam`.
+    */
+  def getBamIndex(br: BamRequest)(implicit request: Request[AnyContent]): Future[Result] = {
     /* Index not found, try to index */
     if (!isOnDisk(br.indexFile)) {
       /* Cannot index because no samtools not found */
       if (!samtoolsExists()) {
-        InternalServerError("Index file not found, and could not find 'samtools' in $PATH to fix it.")
+        Future(InternalServerError("Index file not found, and could not find 'samtools' in $PATH to fix it."))
         /* Index the bam using samtools */
       } else {
-        indexBam(br.indexFile.toPath.toString)
-        Ok.sendFile(br.indexFile)
+        indexBam(br.indexFile.toPath.toString) recover {
+          case err => InternalServerError("Error while indexing: "+ err.getMessage)
+        } map { _ =>
+          Ok.sendFile(br.indexFile)
+        }
       }
-      /* Index found, return */
+    /* Index found, return */
     } else {
-      Ok.sendFile(br.indexFile)
+      Future.successful(Ok.sendFile(br.indexFile))
     }
   }
 

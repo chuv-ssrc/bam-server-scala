@@ -2,7 +2,9 @@ package utils
 
 import play.api.Logger
 import play.api.db.Database
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable.ArrayBuffer
+import scala.concurrent.Future
 import sys.process._
 
 
@@ -32,7 +34,7 @@ object BamUtils {
     * Run samtools index on the give bam file.
     * @param bamFilename: BAM file name
     */
-  def indexBam(bamFilename:String): Unit = {
+  def indexBam(bamFilename:String): Future[Unit] = Future {
     val commandIndex = s"samtools index $bamFilename"
     Logger.info("Indexing: " + commandIndex.toString)
     commandIndex ! logger

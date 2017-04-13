@@ -4,11 +4,14 @@ import javax.inject.{Inject, _}
 
 import auth.AuthenticatedAction
 import controllers.generic.BamQueryController
+import scala.concurrent.ExecutionContext.Implicits.global
 import models.BamRequest
 import play.api.Configuration
 import play.api.db.Database
+import play.api.mvc.Result
 import utils.BamUtils.samtoolsExists
 
+import scala.concurrent.Future
 import scala.sys.process._
 import scala.util.{Failure, Success}
 
@@ -25,21 +28,21 @@ class SamtoolsController @Inject()(db: Database, config: Configuration) extends 
 
   //------------------ Actions -------------------//
 
-  def bamPost(region: Option[String]) = AuthenticatedAction { implicit request =>
+  def bamPost(region: Option[String]) = AuthenticatedAction.async { implicit request =>
     parseBamRequestFromPost(request) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)
-        InternalServerError(err.getMessage)
+        Future(InternalServerError(err.getMessage))
       case Success(br: BamRequest) =>
         getBamWithSamtools(br, region)
     }
   }
 
-  def bamGet(sample: String, token: Option[String], region: Option[String]) = AuthenticatedAction { implicit request =>
+  def bamGet(sample: String, token: Option[String], region: Option[String]) = AuthenticatedAction.async { implicit request =>
     keyToBamRequest(sample) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)
-        InternalServerError(err.getMessage)
+        Future(InternalServerError(err.getMessage))
       case Success(br: BamRequest) =>
         getBamWithSamtools(br, region)
     }
@@ -47,17 +50,19 @@ class SamtoolsController @Inject()(db: Database, config: Configuration) extends 
 
   //--------------- Common code ----------------//
 
-  def getBamWithSamtools(br: BamRequest, maybeRegion: Option[String]) = {
+  def getBamWithSamtools(br: BamRequest, maybeRegion: Option[String]): Future[Result] = {
     maybeRegion match {
       case None =>
-        Ok.sendFile(br.bamFile)
+        Future.successful(Ok.sendFile(br.bamFile))
       case Some(region) =>
         if (! samtoolsExists())
-          InternalServerError("Could not find 'samtools' in $PATH.")
+          Future(InternalServerError("Could not find 'samtools' in $PATH."))
         else {
-          val command = s"samtools view -hb ${br.bamFile.toPath} $region"
-          val res: String = command.!!
-          Ok(res).as(BINARY)
+          Future {
+            val command = s"samtools view -hb ${br.bamFile.toPath} $region"
+            val res: String = command.!!
+            Ok(res).as(BINARY)
+          }
         }
     }
   }

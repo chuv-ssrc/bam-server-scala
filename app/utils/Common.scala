@@ -6,7 +6,9 @@ import java.security.MessageDigest
 
 import play.api.libs.json.JsValue
 import play.api.mvc.{AnyContent, Request}
-
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 import scala.util.matching.Regex
 import sys.process._
 
@@ -61,6 +63,10 @@ object Common {
     val dir = Paths.get(path).toFile
     val regex = """.*\.""" + Regex.quote(extension) + """$"""
     listFilesTree(dir).filter(f => regex.r.findFirstIn(f.getName).isDefined)
+  }
+
+  def await[E](f: Future[E]): E = {
+    Await.result(f, 1.second)
   }
 
 }
