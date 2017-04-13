@@ -15,7 +15,7 @@ class UsersSpec extends PlaySpec with OneAppPerSuite with WithToken with WithDat
 
   "Add a user" should {
 
-    "add a row to the users table" in {
+    "add rows to the users table" in {
       val body = Json.parse("""
         { "users": [{"username": "A"}, {"username": "B"}] }
       """)

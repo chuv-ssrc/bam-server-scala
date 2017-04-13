@@ -14,7 +14,7 @@ class UtilsSpec extends PlaySpec {
 
   "`isOnDisk`" should {
 
-    "Return whether the file is on disk" in {
+    "return whether the file is on disk" in {
       isOnDisk(Paths.get("asdf").toFile) must be (false)
       isOnDisk(Paths.get("scripts/onDisk.sh").toFile) must be (true)
     }

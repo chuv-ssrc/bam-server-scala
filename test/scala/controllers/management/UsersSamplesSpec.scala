@@ -15,7 +15,7 @@ class UsersSamplesSpec extends PlaySpec with OneAppPerSuite with WithToken with 
 
   "Add an attribution" should {
 
-    "add a row to the users_samples table" in {
+    "add rows to the users_samples table" in {
       val body = Json.parse("""
         { "users_samples": [{"sample": "testkey", "username": "testuser"}, {"sample": "inactivekey", "username": "testuser"}] }
       """)

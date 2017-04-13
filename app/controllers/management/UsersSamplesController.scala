@@ -8,8 +8,6 @@ import models.UserSample
 import play.api.db.Database
 import play.api.libs.json._
 import play.api.mvc._
-
-import scala.collection.mutable.ArrayBuffer
 import scala.util.Try
 
 

@@ -21,7 +21,7 @@ class RangeSpec extends PlaySpec with OneAppPerSuite with WithToken {
 
   "RangeController" should {
 
-    "Return everything if no range is given (POST)" in {
+    "return everything if no range is given (POST)" in {
       val headers = (AUTHORIZATION -> s"Bearer $auth0Token")
       val response = route(app, FakeAuthorizedRequest(POST, "/bam/range").withJsonBody(body)).get
       status(response) mustBe OK
@@ -46,7 +46,7 @@ class RangeSpec extends PlaySpec with OneAppPerSuite with WithToken {
       contentType(response).get mustBe BINARY
     }
 
-    "Complain if none of the ranges overlap the resource (POST)" in {
+    "complain if none of the ranges overlap the resource (POST)" in {
       val headers = List(
         (AUTHORIZATION -> s"Bearer $auth0Token"),
         (RANGE -> s"bytes=151990-355919")
@@ -55,7 +55,7 @@ class RangeSpec extends PlaySpec with OneAppPerSuite with WithToken {
       status(response) mustBe REQUESTED_RANGE_NOT_SATISFIABLE
     }
 
-    "Complain if none of the ranges overlap the resource (GET)" in {
+    "complain if none of the ranges overlap the resource (GET)" in {
       val response = route(app, FakeAuthorizedRequest(GET, s"/bam/range/$testkey?range=151990-355919")).get
       status(response) mustBe REQUESTED_RANGE_NOT_SATISFIABLE
     }

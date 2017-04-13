@@ -20,7 +20,7 @@ class SamtoolsSpec extends PlaySpec with OneAppPerSuite with WithToken {
 
   "SamtoolsController" should {
 
-    "Return everything if no region is given (POST)" in {
+    "return everything if no region is given (POST)" in {
       assume(samtoolsExists())
       val request = FakeAuthorizedRequest(POST, "/bam/samtools").withJsonBody(body)
       val response = route(app, request).get

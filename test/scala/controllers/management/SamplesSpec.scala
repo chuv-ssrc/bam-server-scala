@@ -15,7 +15,7 @@ class SamplesSpec extends PlaySpec with OneAppPerSuite with WithToken with WithD
 
   "Add a sample" should {
 
-    "add a row to the samples table" in {
+    "add rows to the samples table" in {
       val body = Json.parse("""
         { "samples": [{"name": "A", "filename": "/"}, {"name": "B", "filename": "/"}] }
       """)
