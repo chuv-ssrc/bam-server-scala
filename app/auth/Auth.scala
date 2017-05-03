@@ -79,9 +79,9 @@ class Auth @Inject()(db: Database) {
   }
 
   def validateToken(jwt: String, db: Database): Try[User] = {
-    // Get the claim without verification, to read the app name from the "iss" claim
-    // and read the corresponding public key, then validate the token
-    JwtJson.decodeJson(jwt, JwtOptions(signature=false)) flatMap { claim =>
+    /* First get the claim without verification, to read the app name from the "iss" claim
+       and read the corresponding public key, then we can validate the token. */
+    JwtJson.decodeJson(jwt, JwtOptions(signature = false)) flatMap { claim =>
       for {
         iss <- Try(issFromClaim(claim))
         username <- Try(userFromClaim(claim))
@@ -91,7 +91,7 @@ class Auth @Inject()(db: Database) {
       } yield {
         // Now validate the token with the public key
         // Raises an error if the validation fails
-        JwtJson.validate (jwt, publicKey, Seq(JwtAlgorithm.RS256))
+        JwtJson.validate(jwt, publicKey, Seq(JwtAlgorithm.RS256))
         user
       }
     }

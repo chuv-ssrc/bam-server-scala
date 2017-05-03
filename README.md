@@ -256,13 +256,14 @@ Its only role is to identify users of the client app and return valid tokens.
     3. Point your browser to 
          
            https://<domain>/authorize
-               ?scope=openid profile
+               ?scope=openid name nickname email user_id
                &response_type=token
                &client_id=<client_id>
                &redirect_uri=localhost:3000
                &nonce=1234&state=1234
 
        where you replace `<domain>` and `<client_id>` by your own Auth0 client settings.
+       N.B. The "scope" argument is what permits to have the "name" field in the token.
        
     4. Log in; you get redirected to localhost:3000/ and you can find an "id_token" in the url.
        This is a JWT that bam-server accepts (*not* "access_token"). For instance:

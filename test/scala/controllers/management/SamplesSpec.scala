@@ -9,7 +9,7 @@ import scala.setup.{WithDatabase, WithToken}
 
 
 /**
-  * Test IndexController.
+  * Test SamplesController.
   */
 class SamplesSpec extends PlaySpec with OneAppPerSuite with WithToken with WithDatabase {
 

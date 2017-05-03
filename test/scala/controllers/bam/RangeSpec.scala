@@ -22,8 +22,8 @@ class RangeSpec extends PlaySpec with OneAppPerSuite with WithToken {
   "RangeController" should {
 
     "return everything if no range is given (POST)" in {
-      val headers = (AUTHORIZATION -> s"Bearer $auth0Token")
-      val response = route(app, FakeAuthorizedRequest(POST, "/bam/range").withJsonBody(body)).get
+      val header = (AUTHORIZATION -> s"Bearer $auth0Token")
+      val response = route(app, FakeAuthorizedRequest(POST, "/bam/range").withJsonBody(body).withHeaders(header)).get
       status(response) mustBe OK
       contentType(response).get mustBe BINARY
     }

@@ -43,7 +43,9 @@ class RangeController @Inject()(db: Database, config: Configuration) extends Bam
         InternalServerError(err.getMessage)
       case Success(br: BamRequest) =>
         range match {
-          case None => RangeResult.ofFile(br.bamFile, None, Some(BINARY))
+          // Maybe the range is in http headers
+          case None => RangeResult.ofFile(br.bamFile, request.headers.get(RANGE), Some(BINARY))
+          // If not, see if there is one in the url
           case Some(rangeFromUrl) =>
             val rangeRegex = """(\d*-\d*)""".r
             rangeRegex.findFirstIn(rangeFromUrl) match {
