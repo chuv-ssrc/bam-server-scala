@@ -15,7 +15,6 @@ import scala.util.Try
 @Singleton
 class UsersController @Inject()(db: Database) extends Controller {
 
-  val AuthenticatedAction = new AuthenticatedAction(db)
   val AdminAction = new AdminAction(db)
 
   def usersFromRequest(implicit request: AuthenticatedRequest[JsValue]): Seq[User] = {
@@ -55,7 +54,7 @@ class UsersController @Inject()(db: Database) extends Controller {
 
     val users = usersFromRequest
 
-    db.withTransaction { conn =>
+    db.withConnection { conn =>
       val unknowns: String = users.map(_ => "(?)").mkString(",")
       val statement = conn.prepareStatement("INSERT INTO `users`(`username`) VALUES "+unknowns+" ;")
       users.zipWithIndex.foreach {case (user, i: Int) => statement.setString(i+1, user.username)}
@@ -73,7 +72,7 @@ class UsersController @Inject()(db: Database) extends Controller {
 
     val usernames: Seq[String] = usernamesFromRequest
 
-    db.withTransaction { conn =>
+    db.withConnection { conn =>
       val unknowns: String = usernames.map(_ => "?").mkString(",")
       val statement = conn.prepareStatement("DELETE FROM `users` WHERE `username` IN ("+unknowns+") ;")
       usernames.zipWithIndex.foreach {case (username, i: Int) => statement.setString(i+1, username)}

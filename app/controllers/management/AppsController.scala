@@ -32,6 +32,19 @@ class AppsController @Inject()(db: Database) extends Controller {
     iss
   }
 
+  def findAppByIss(iss: String): Int = {
+    db.withConnection { conn =>
+      val statement = conn.prepareStatement("SELECT `id` FROM `apps` WHERE iss = ? ;")
+      statement.setString(1, iss)
+      val result = statement.executeQuery()
+      var count = 0
+      while (result.next()) {
+        count += 1
+      }
+      count
+    }
+  }
+
   /**
     * Add an app to the database.
     * Expects a JSON body of the type
@@ -41,13 +54,17 @@ class AppsController @Inject()(db: Database) extends Controller {
 
     val app: App = appFromRequest
 
-    db.withTransaction { conn =>
-      val statement = conn.prepareStatement("INSERT INTO `apps`(`iss`,`keyFile`,`description`) VALUES (?,?,?) ;")
-      statement.setString(1, app.iss)
-      statement.setString(2, app.keyFile)
-      statement.setString(3, app.description.getOrElse(""))
-      statement.execute()
-      Ok(s"Inserted app '${app.iss}'")
+    if (findAppByIss(app.iss) > 0) {
+      InternalServerError(s"Cannot insert app '${app.iss}' because it already exists")
+    } else {
+      db.withConnection { conn =>
+        val statement = conn.prepareStatement("INSERT INTO `apps`(`iss`,`keyFile`,`description`) VALUES (?,?,?) ;")
+        statement.setString(1, app.iss)
+        statement.setString(2, app.keyFile)
+        statement.setString(3, app.description.getOrElse(""))
+        statement.execute()
+        Ok(s"Inserted app '${app.iss}'")
+      }
     }
   }
 
@@ -60,11 +77,15 @@ class AppsController @Inject()(db: Database) extends Controller {
 
     val iss = issFromRequest
 
-    db.withTransaction { conn =>
-      val statement = conn.prepareStatement("DELETE FROM `apps` WHERE `iss` = ? ;")
-      statement.setString(1, iss)
-      statement.execute()
-      Ok(s"Deleted app '$iss'")
+    if (findAppByIss(iss) == 0) {
+      InternalServerError(s"Cannot delete app '$iss' because it does not exist")
+    } else {
+      db.withConnection { conn =>
+        val statement = conn.prepareStatement("DELETE FROM `apps` WHERE `iss` = ? ;")
+        statement.setString(1, iss)
+        statement.execute()
+        Ok(s"Deleted app '$iss'")
+      }
     }
   }
 

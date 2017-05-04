@@ -60,7 +60,7 @@ class Auth @Inject()(db: Database) {
         res = Some((appId, keyFile))
       }
       res getOrElse {
-        throw new IllegalArgumentException("Could not find an app with this 'iss' identifer in database")
+        throw new IllegalArgumentException(s"Could not find app '$iss' in database")
       }
     }
   }
@@ -78,7 +78,7 @@ class Auth @Inject()(db: Database) {
         res = Some(User(Some(appId), username, isActive=isActive, isAdmin=isAdmin))
       }
       res getOrElse {
-        throw new IllegalArgumentException("Could not find a user with this name and app_id in the database")
+        throw new IllegalArgumentException(s"Could not find user '$username' with app_id=$appId in the database")
       }
     }
   }

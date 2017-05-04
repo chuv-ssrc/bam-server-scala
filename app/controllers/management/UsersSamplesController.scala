@@ -14,7 +14,6 @@ import scala.util.Try
 @Singleton
 class UsersSamplesController @Inject()(db: Database) extends Controller {
 
-  val AuthenticatedAction = new AuthenticatedAction(db)
   val AdminAction = new AdminAction(db)
 
   def usersSamplesFromRequest(implicit request: AuthenticatedRequest[JsValue]): Seq[UserSample] = {
@@ -70,7 +69,7 @@ class UsersSamplesController @Inject()(db: Database) extends Controller {
     val userIds = getUserIds(usersSamples.map(_.username))
     val sampleIds = getSampleIds(usersSamples.map(_.sample))
 
-    db.withTransaction { conn =>
+    db.withConnection { conn =>
       val unknowns: String = usersSamples.map(_ => "(?,?)").mkString(",")
       val statement = conn.prepareStatement(s"""
         INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES $unknowns ;
@@ -95,7 +94,7 @@ class UsersSamplesController @Inject()(db: Database) extends Controller {
     val userIds = getUserIds(usersSamples.map(_.username))
     val sampleIds = getSampleIds(usersSamples.map(_.sample))
 
-    db.withTransaction { conn =>
+    db.withConnection { conn =>
       (userIds zip sampleIds).foreach { case (uid, sid) =>
         val statement = conn.prepareStatement(s"""
           DELETE FROM `users_samples` WHERE user_id = ? and sample_id = ? ;

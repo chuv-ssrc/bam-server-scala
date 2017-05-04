@@ -4,6 +4,8 @@ import pdi.jwt.{Jwt, JwtAlgorithm, JwtJson}
 
 import scala.util.{Failure, Success, Try}
 import play.api.libs.json._
+import play.api.test.Helpers._
+import play.api.test._
 import org.scalatestplus.play._
 import auth.Auth
 import auth.RSA._
@@ -60,6 +62,17 @@ class AuthSpec extends PlaySpec with WithToken with WithDatabase with OneAppPerS
       // "iss" changed
       val wrongToken2 = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik1UQTFNRGhHTUVRMVJUUXdOekJGTmpJME9FUkdPRFExUVRneE1rUTBNa0l5TkVWRU56QkROQSJ9.eyJlbWFpbCI6Imp1bGllbi5kZWxhZm9udGFpbmVAeWFuZGV4LmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJ1c2VyX2lkIjoiYXV0aDB8NTg5NDhlMzViMGU4YzAwZjc0YjM4OTdkIiwiY2xpZW50SUQiOiJHNGJGV25wYXVsUmxIU2N5enpueE5aZVBqTnhaRzI4eSIsInBpY3R1cmUiOiJodHRwczovL3MuZ3JhdmF0YXIuY29tL2F2YXRhci9iOGJmYTc4NjY1ZGM2NzBhN2NiZjM5ODI0MzJiMmJiOD9zPTQ4MCZyPXBnJmQ9aHR0cHMlM0ElMkYlMkZjZG4uYXV0aDAuY29tJTJGYXZhdGFycyUyRmp1LnBuZyIsIm5pY2tuYW1lIjoianVsaWVuLmRlbGFmb250YWluZSIsImlkZW50aXRpZXMiOlt7InVzZXJfaWQiOiI1ODk0OGUzNWIwZThjMDBmNzRiMzg5N2QiLCJwcm92aWRlciI6ImF1dGgwIiwiY29ubmVjdGlvbiI6IlVzZXJuYW1lLVBhc3N3b3JkLUF1dGhlbnRpY2F0aW9uIiwiaXNTb2NpYWwiOmZhbHNlfV0sInVwZGF0ZWRfYXQiOiIyMDE3LTAzLTMwVDA4OjQ5OjAxLjY2N1oiLCJjcmVhdGVkX2F0IjoiMjAxNy0wMi0wM1QxNDowNTo0MS4zMzlaIiwibGFzdF9wYXNzd29yZF9yZXNldCI6IjIwMTctMDMtMjlUMTA6Mjk6NDQuMDcyWiIsIm5hbWUiOiJqdWxpZW4uZGVsYWZvbnRhaW5lQHlhbmRleC5jb20iLCJpc3MiOiJwaXJhdGUiLCJzdWIiOiJhdXRoMHw1ODk0OGUzNWIwZThjMDBmNzRiMzg5N2QiLCJhdWQiOiJHNGJGV25wYXVsUmxIU2N5enpueE5aZVBqTnhaRzI4eSIsImV4cCI6MzE0OTA4NjM3NDEsImlhdCI6MTQ5MDg2Mzc0MSwibm9uY2UiOiJ0dHR0In0.v8zFYyHsWDttZJLHBJJo4QZX5116HKDFBJgTc8EBfw0T3NyOwHlN6UtuagOSYQmNjKk_xMD1pgptihRcqhRTN6p5VLjCOyrga1vpxWTUfKIzbVZ2XtwHzQWhyN2qb7ipLBhXxqTJgrOgeoYA9Tb2lvDIwPW1Qq4kVaeYtkarrX8"
       Auth.validateToken(wrongToken2, db) mustBe a[Failure[_]]
+    }
+
+  }
+
+  "Auth routes" should {
+
+    "return 401 and the error message if authorization failed" in {
+        val header = ("Authorization", "Bearer " + auth0Token.slice(0,auth0Token.length-1))
+        val response = route(app, FakeRequest(GET, "/bai/ttt").withHeaders(header)).get
+        status(response) mustBe UNAUTHORIZED
+        contentAsString(response) must startWith("Last unit does not have enough valid bits")
     }
 
   }

@@ -15,7 +15,6 @@ import scala.util.Try
 @Singleton
 class SamplesController @Inject()(db: Database) extends Controller {
 
-  val AuthenticatedAction = new AuthenticatedAction(db)
   val AdminAction = new AdminAction(db)
 
   def samplesFromRequest(implicit request: AuthenticatedRequest[JsValue]): Seq[Sample] = {
@@ -51,7 +50,7 @@ class SamplesController @Inject()(db: Database) extends Controller {
 
     val samples = samplesFromRequest
 
-    db.withTransaction { conn =>
+    db.withConnection { conn =>
       val unknowns: String = samples.map(_ => "(?,?)").mkString(",")
       val statement = conn.prepareStatement("INSERT INTO `samples`(`name`,`filename`) VALUES "+unknowns+" ;")
       samples.zipWithIndex.foreach {case (sample, i: Int) =>
@@ -72,7 +71,7 @@ class SamplesController @Inject()(db: Database) extends Controller {
 
     val sampleNames = sampleNamesFromRequest
 
-    db.withTransaction { conn =>
+    db.withConnection { conn =>
       val unknowns: String = sampleNames.map(_ => "?").mkString(",")
       val statement = conn.prepareStatement("DELETE FROM `samples` WHERE `name` IN ("+unknowns+") ;")
       sampleNames.zipWithIndex.foreach {case (name, i: Int) => statement.setString(i+1, name)}
