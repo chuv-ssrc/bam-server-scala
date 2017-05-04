@@ -31,6 +31,11 @@ class Auth @Inject()(db: Database) {
     }
   }
 
+  /**
+    * Read the "iss" (issuer) claim from JWT and return its value (the app name).
+    * @param claim
+    * @return
+    */
   private def issFromClaim(claim: JsObject): String = {
     (claim \ "iss").asOpt[String] getOrElse {
       throw new IllegalArgumentException("No 'iss' claim found in token (to identify the issuer)")

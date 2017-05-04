@@ -21,7 +21,9 @@ GET /bam/samtools/:sample                 controllers.bam.SamtoolsController.bam
 POST /bam/json                            controllers.bam.JsonController.bamPost(region: Option[String])
 GET /bam/json/:sample                     controllers.bam.JsonController.bamGet(sample: String, token: Option[String], region: Option[String])
 
-# Add or remove users, samples, and attributions
+# Add or remove apps, users, samples, and attributions
+PUT /apps                                controllers.management.AppsController.addApp()
+DELETE /apps                             controllers.management.AppsController.deleteApp()
 PUT /users                                controllers.management.UsersController.addUsers()
 DELETE /users                             controllers.management.UsersController.deleteUsers()
 PUT /samples                              controllers.management.SamplesController.addSamples()
