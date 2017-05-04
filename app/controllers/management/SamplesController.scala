@@ -59,7 +59,7 @@ class SamplesController @Inject()(db: Database) extends Controller {
         statement.setString(2*i+2, sample.filename)
       }
       statement.execute()
-      Ok(s"Inserted ${samples.size} samples")
+      Ok(s"Inserted ${samples.size} sample(s)")
     }
   }
 
@@ -77,7 +77,7 @@ class SamplesController @Inject()(db: Database) extends Controller {
       val statement = conn.prepareStatement("DELETE FROM `samples` WHERE `name` IN ("+unknowns+") ;")
       sampleNames.zipWithIndex.foreach {case (name, i: Int) => statement.setString(i+1, name)}
       statement.execute()
-      Ok(s"Deleted ${sampleNames.size} samples")
+      Ok(s"Deleted ${sampleNames.size} sample(s)")
     }
   }
 

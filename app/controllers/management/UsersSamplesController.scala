@@ -80,7 +80,7 @@ class UsersSamplesController @Inject()(db: Database) extends Controller {
         statement.setInt(2*i+2, sid)
       }
       statement.execute()
-      Ok(s"Inserted ${usersSamples.size} users")
+      Ok(s"Inserted ${usersSamples.size} user-sample(s)")
     }
   }
 
@@ -104,7 +104,7 @@ class UsersSamplesController @Inject()(db: Database) extends Controller {
         statement.setInt(2, sid)
         statement.execute()
       }
-      Ok(s"Deleted ${usersSamples.size} users")
+      Ok(s"Deleted ${usersSamples.size} user-sample(s)")
     }
   }
 
