@@ -29,7 +29,7 @@ Bam-server can return portions of BAM files using 3 different strategies:
 REST API
 ========
 
-Let `:sample` be a sample identifier in the database;
+Let `:sample`/`<sample>` be a sample identifier in the database;
 
 Let `<range>` be a bytes range, formatted as "123-456";
 
@@ -39,27 +39,30 @@ Let `<region>` be a genomic region, formatted as "chr1:10000-20000".
 
 Says "BAM server operational.", just to test if the server is listening.
 
-    POST /bai
+    POST /bai                                   # data = '{"sample": "<sample>"}'
     GET /bai/:sample
 
 Returns the content of the index (.bai) for that BAM file.
 
-    POST /bam/range
-    GET /bam/range/:sample?range=<range>
+    POST /bam/range                             # data = '{"sample": "<sample>"}'
+    GET /bam/range/:sample
 
 Returns the content of the BAM file, expecting a Range HTTP header
 to extract only the bytes range of interest - likely based on the index.
+The bytes range can also be passed as an argument to the request (`?range=<range>`).
+Return the content as binary.
 
-    POST /bam/samtools?region=<region>
+    POST /bam/samtools?region=<region>          # data = '{"sample": "<sample>"}'
     GET /bam/samtools/:sample?region=<region>
 
 Uses samtools (if available) to extract the region (``samtools view -hb <bam> <region>``).
 Return the content as binary.
 
-    POST /bam/json?region=<region>
+    POST /bam/json?region=<region>              # data = '{"sample": "<sample>"}'
     GET /bam/json/:sample?region=<region>
 
-Returns the reads for the given region in JSON format, using the [htsjdk](http://samtools.github.io/htsjdk/) library.
+Returns the reads for the given region in JSON format, 
+using the [htsjdk](http://samtools.github.io/htsjdk/) library.
 The fields correspond to the SAM file columns:
 
     [
