@@ -19,11 +19,11 @@ class AppsSpec extends PlaySpec with OneAppPerSuite with WithToken with WithData
   "`findAppByIss`" should {
 
     "return 0 if the app does not exist" in {
-      new AppsController(db).findAppByIss("unknown") must equal(0)
+      AppsController.findAppByIss(db, "unknown") must equal(0)
     }
 
     "return 1 if the app already exists" in {
-      new AppsController(db).findAppByIss("test") must equal(1)
+      AppsController.findAppByIss(db, "test") must equal(1)
     }
 
   }
