@@ -16,34 +16,7 @@ import scala.util.Try
 class AppsController @Inject()(db: Database) extends Controller {
 
   val AdminAction = new AdminAction(db)
-
-  def appFromRequest(implicit request: AuthenticatedRequest[JsValue]): App = {
-    val app: App =
-      Try (AppForm.fromJson(request.body)) getOrElse {
-        throw new IllegalArgumentException("Could not cast request body to App model")
-      }
-    app
-  }
-
-  def issFromRequest(implicit request: AuthenticatedRequest[JsValue]): String = {
-    val iss: String = (request.body \ "iss").asOpt[String] getOrElse {
-      throw new IllegalArgumentException("Could not find iss claim in request body")
-    }
-    iss
-  }
-
-  def findAppByIss(iss: String): Int = {
-    db.withConnection { conn =>
-      val statement = conn.prepareStatement("SELECT `id` FROM `apps` WHERE iss = ? ;")
-      statement.setString(1, iss)
-      val result = statement.executeQuery()
-      var count = 0
-      while (result.next()) {
-        count += 1
-      }
-      count
-    }
-  }
+  import AppsController._
 
   /**
     * Add an app to the database.
@@ -54,7 +27,7 @@ class AppsController @Inject()(db: Database) extends Controller {
 
     val app: App = appFromRequest
 
-    if (findAppByIss(app.iss) > 0) {
+    if (findAppByIss(db, app.iss) > 0) {
       InternalServerError(s"Cannot insert app '${app.iss}' because it already exists")
     } else {
       db.withConnection { conn =>
@@ -77,7 +50,7 @@ class AppsController @Inject()(db: Database) extends Controller {
 
     val iss = issFromRequest
 
-    if (findAppByIss(iss) == 0) {
+    if (findAppByIss(db, iss) == 0) {
       InternalServerError(s"Cannot delete app '$iss' because it does not exist")
     } else {
       db.withConnection { conn =>
@@ -86,6 +59,40 @@ class AppsController @Inject()(db: Database) extends Controller {
         statement.execute()
         Ok(s"Deleted app '$iss'")
       }
+    }
+  }
+
+}
+
+
+
+object AppsController {
+
+  def appFromRequest(implicit request: AuthenticatedRequest[JsValue]): App = {
+    val app: App =
+      Try (AppForm.fromJson(request.body)) getOrElse {
+        throw new IllegalArgumentException("Could not cast request body to App model")
+      }
+    app
+  }
+
+  def issFromRequest(implicit request: AuthenticatedRequest[JsValue]): String = {
+    val iss: String = (request.body \ "iss").asOpt[String] getOrElse {
+      throw new IllegalArgumentException("Could not find iss claim in request body")
+    }
+    iss
+  }
+
+  def findAppByIss(db: Database, iss: String): Int = {
+    db.withConnection { conn =>
+      val statement = conn.prepareStatement("SELECT `id` FROM `apps` WHERE iss = ? ;")
+      statement.setString(1, iss)
+      val result = statement.executeQuery()
+      var count = 0
+      while (result.next()) {
+        count += 1
+      }
+      count
     }
   }
 
