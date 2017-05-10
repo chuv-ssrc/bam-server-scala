@@ -2,7 +2,7 @@ package controllers.management
 
 import javax.inject._
 
-import auth.{AdminAction, AuthenticatedAction, AuthenticatedRequest}
+import auth.{AdminAction, AuthenticatedRequest}
 import forms.SamplesForm
 import models.Sample
 import play.api.db.Database
@@ -16,30 +16,7 @@ import scala.util.Try
 class SamplesController @Inject()(db: Database) extends Controller {
 
   val AdminAction = new AdminAction(db)
-
-  def samplesFromRequest(implicit request: AuthenticatedRequest[JsValue]): Seq[Sample] = {
-    val samplesJs: JsArray = (request.body \ "samples").asOpt[JsArray] getOrElse {
-      throw new IllegalArgumentException("Could not cast samples array from request body to JsArray")
-    }
-    val samples: Seq[Sample] = samplesJs.value map { sampleJs =>
-      Try (SamplesForm.fromJson(sampleJs)) getOrElse {
-        throw new IllegalArgumentException("Could not cast sample from request body to Samples model")
-      }
-    }
-    samples
-  }
-
-  def sampleNamesFromRequest(implicit request: AuthenticatedRequest[JsValue]): Seq[String] = {
-    val sampleNamesJs: JsArray = (request.body \ "samples").asOpt[JsArray] getOrElse {
-      throw new IllegalArgumentException("Could not cast sample names array from request body to JsArray")
-    }
-    val sampleNames: Seq[String] = sampleNamesJs.value map { sampleNameJs =>
-      Try (sampleNameJs.as[String]) getOrElse {
-        throw new IllegalArgumentException("Could not cast sample names from request body to String")
-      }
-    }
-    sampleNames
-  }
+  import SamplesController._
 
   /**
     * Add one or more samples to the database.
@@ -78,6 +55,35 @@ class SamplesController @Inject()(db: Database) extends Controller {
       statement.execute()
       Ok(s"Deleted ${sampleNames.size} sample(s)")
     }
+  }
+
+}
+
+
+object SamplesController {
+
+  def samplesFromRequest(implicit request: AuthenticatedRequest[JsValue]): Seq[Sample] = {
+    val samplesJs: JsArray = (request.body \ "samples").asOpt[JsArray] getOrElse {
+      throw new IllegalArgumentException("Could not cast samples array from request body to JsArray")
+    }
+    val samples: Seq[Sample] = samplesJs.value map { sampleJs =>
+      Try (SamplesForm.fromJson(sampleJs)) getOrElse {
+        throw new IllegalArgumentException("Could not cast sample from request body to Samples model")
+      }
+    }
+    samples
+  }
+
+  def sampleNamesFromRequest(implicit request: AuthenticatedRequest[JsValue]): Seq[String] = {
+    val sampleNamesJs: JsArray = (request.body \ "samples").asOpt[JsArray] getOrElse {
+      throw new IllegalArgumentException("Could not cast sample names array from request body to JsArray")
+    }
+    val sampleNames: Seq[String] = sampleNamesJs.value map { sampleNameJs =>
+      Try (sampleNameJs.as[String]) getOrElse {
+        throw new IllegalArgumentException("Could not cast sample names from request body to String")
+      }
+    }
+    sampleNames
   }
 
 }

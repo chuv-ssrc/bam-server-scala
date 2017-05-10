@@ -2,7 +2,7 @@ package controllers.management
 
 import javax.inject._
 
-import auth.{AdminAction, AuthenticatedAction, AuthenticatedRequest}
+import auth.{AdminAction, AuthenticatedRequest}
 import forms.UsersSamplesForm
 import models.UserSample
 import play.api.db.Database
@@ -15,48 +15,7 @@ import scala.util.Try
 class UsersSamplesController @Inject()(db: Database) extends Controller {
 
   val AdminAction = new AdminAction(db)
-
-  def usersSamplesFromRequest(implicit request: AuthenticatedRequest[JsValue]): Seq[UserSample] = {
-    val usersSamplesJs: JsArray = (request.body \ "users_samples").asOpt[JsArray] getOrElse {
-      throw new IllegalArgumentException("Could not cast users_samples array from request body to JsArray")
-    }
-    val users: Seq[UserSample] = usersSamplesJs.value map { userSampleJs =>
-      Try (UsersSamplesForm.fromJson(userSampleJs)) getOrElse {
-        throw new IllegalArgumentException("Could not cast request body to UserSample models")
-      }
-    }
-    users
-  }
-
-  def getUserIds(usernames: Seq[String]): Seq[Int] = {
-    val unknowns: String = usernames.map(_ => "?").mkString(",")
-    db.withConnection { conn =>
-      val statement = conn.prepareStatement(s"SELECT username,id FROM users WHERE username IN ($unknowns) ;")
-      usernames.zipWithIndex.foreach {case (name, i) => statement.setString(i+1, name)}
-      val res = statement.executeQuery()
-      val usersMap = scala.collection.mutable.HashMap[String,Int]()
-      while (res.next()) {
-        usersMap += (res.getString("username") -> res.getInt("id"))
-      }
-      val userIds = usernames map (usersMap(_))
-      userIds
-    }
-  }
-
-  def getSampleIds(sampleNames: Seq[String]): Seq[Int] = {
-    val unknowns: String = sampleNames.map(_ => "?").mkString(",")
-    db.withConnection { conn =>
-      val statement = conn.prepareStatement(s"SELECT name,id FROM samples WHERE name IN ($unknowns) ;")
-      sampleNames.zipWithIndex.foreach {case (name, i) => statement.setString(i+1, name)}
-      val res = statement.executeQuery()
-      val samplesMap = scala.collection.mutable.HashMap[String,Int]()
-      while (res.next()) {
-        samplesMap += (res.getString("name") -> res.getInt("id"))
-      }
-      val sampleIds = sampleNames map (samplesMap(_))
-      sampleIds
-    }
-  }
+  import UsersSamplesController._
 
   /**
     * Add one or more users_samples rows to the database.
@@ -66,8 +25,8 @@ class UsersSamplesController @Inject()(db: Database) extends Controller {
   def addUsersSamples() = AdminAction(parse.json) { implicit request =>
 
     val usersSamples = usersSamplesFromRequest
-    val userIds = getUserIds(usersSamples.map(_.username))
-    val sampleIds = getSampleIds(usersSamples.map(_.sample))
+    val userIds = getUserIds(db, usersSamples.map(_.username))
+    val sampleIds = getSampleIds(db, usersSamples.map(_.sample))
 
     db.withConnection { conn =>
       val unknowns: String = usersSamples.map(_ => "(?,?)").mkString(",")
@@ -91,8 +50,8 @@ class UsersSamplesController @Inject()(db: Database) extends Controller {
   def deleteUsersSamples() = AdminAction(parse.json) { implicit request =>
 
     val usersSamples = usersSamplesFromRequest
-    val userIds = getUserIds(usersSamples.map(_.username))
-    val sampleIds = getSampleIds(usersSamples.map(_.sample))
+    val userIds = getUserIds(db, usersSamples.map(_.username))
+    val sampleIds = getSampleIds(db, usersSamples.map(_.sample))
 
     db.withConnection { conn =>
       (userIds zip sampleIds).foreach { case (uid, sid) =>
@@ -108,3 +67,52 @@ class UsersSamplesController @Inject()(db: Database) extends Controller {
   }
 
 }
+
+
+
+object UsersSamplesController {
+
+  def usersSamplesFromRequest(implicit request: AuthenticatedRequest[JsValue]): Seq[UserSample] = {
+    val usersSamplesJs: JsArray = (request.body \ "users_samples").asOpt[JsArray] getOrElse {
+      throw new IllegalArgumentException("Could not cast users_samples array from request body to JsArray")
+    }
+    val users: Seq[UserSample] = usersSamplesJs.value map { userSampleJs =>
+      Try (UsersSamplesForm.fromJson(userSampleJs)) getOrElse {
+        throw new IllegalArgumentException("Could not cast request body to UserSample models")
+      }
+    }
+    users
+  }
+
+  def getUserIds(db: Database, usernames: Seq[String]): Seq[Int] = {
+    val unknowns: String = usernames.map(_ => "?").mkString(",")
+    db.withConnection { conn =>
+      val statement = conn.prepareStatement(s"SELECT username,id FROM users WHERE username IN ($unknowns) ;")
+      usernames.zipWithIndex.foreach {case (name, i) => statement.setString(i+1, name)}
+      val res = statement.executeQuery()
+      val usersMap = scala.collection.mutable.HashMap[String,Int]()
+      while (res.next()) {
+        usersMap += (res.getString("username") -> res.getInt("id"))
+      }
+      val userIds = usernames map (usersMap(_))
+      userIds
+    }
+  }
+
+  def getSampleIds(db: Database, sampleNames: Seq[String]): Seq[Int] = {
+    val unknowns: String = sampleNames.map(_ => "?").mkString(",")
+    db.withConnection { conn =>
+      val statement = conn.prepareStatement(s"SELECT name,id FROM samples WHERE name IN ($unknowns) ;")
+      sampleNames.zipWithIndex.foreach {case (name, i) => statement.setString(i+1, name)}
+      val res = statement.executeQuery()
+      val samplesMap = scala.collection.mutable.HashMap[String,Int]()
+      while (res.next()) {
+        samplesMap += (res.getString("name") -> res.getInt("id"))
+      }
+      val sampleIds = sampleNames map (samplesMap(_))
+      sampleIds
+    }
+  }
+
+}
+
