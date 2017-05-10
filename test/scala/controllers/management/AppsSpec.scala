@@ -34,7 +34,6 @@ class AppsSpec extends PlaySpec with OneAppPerSuite with WithToken with WithData
       val body = Json.parse("""
         { "iss": "testApp", "keyFile": "/", "description": "none" }
       """)
-      val db = dbContext.db
       val count0 = countRows(db, "apps")
       val response = route(app, FakeAdminRequest(PUT, "/apps").withJsonBody(body)).get
       status(response) mustBe OK
@@ -46,7 +45,6 @@ class AppsSpec extends PlaySpec with OneAppPerSuite with WithToken with WithData
       val body = Json.parse("""
         { "iss": "testApp", "keyFile": "/", "description": "none" }
       """)
-      val db = dbContext.db
       val count0 = countRows(db, "apps")
       val response = route(app, FakeAdminRequest(PUT, "/apps").withJsonBody(body)).get
       status(response) mustBe INTERNAL_SERVER_ERROR
@@ -62,7 +60,6 @@ class AppsSpec extends PlaySpec with OneAppPerSuite with WithToken with WithData
       val body = Json.parse("""
         { "iss": "testApp" }
       """)
-      val db = dbContext.db
       val count0 = countRows(db, "apps")
       val response = route(app, FakeAdminRequest(DELETE, "/apps").withJsonBody(body)).get
       status(response) mustBe OK
@@ -74,7 +71,6 @@ class AppsSpec extends PlaySpec with OneAppPerSuite with WithToken with WithData
       val body = Json.parse("""
         { "iss": "testApp" }
       """)
-      val db = dbContext.db
       val count0 = countRows(db, "apps")
       val response = route(app, FakeAdminRequest(DELETE, "/apps").withJsonBody(body)).get
       status(response) mustBe INTERNAL_SERVER_ERROR

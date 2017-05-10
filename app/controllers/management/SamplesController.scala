@@ -25,17 +25,24 @@ class SamplesController @Inject()(db: Database) extends Controller {
     */
   def addSamples() = AdminAction(parse.json) { implicit request =>
 
+    val appId = request.user.appId
     val samples = samplesFromRequest
 
-    db.withConnection { conn =>
-      val unknowns: String = samples.map(_ => "(?,?)").mkString(",")
-      val statement = conn.prepareStatement("INSERT INTO `samples`(`name`,`filename`) VALUES "+unknowns+" ;")
-      samples.zipWithIndex.foreach {case (sample, i: Int) =>
-        statement.setString(2*i+1, sample.name)
-        statement.setString(2*i+2, sample.filename)
+    val sampleCounts: Seq[Int] = samples.map(s => findSampleBySampleName(db, s.name, appId))
+    if (sampleCounts.exists(_ > 0)) {
+      val dupSample = samples(sampleCounts.find(_ > 0).get)
+      InternalServerError(s"Cannot insert sample '${dupSample.name}' because it already exists. Nothing was inserted.")
+    } else {
+      db.withConnection { conn =>
+        val unknowns: String = samples.map(_ => "(?,?)").mkString(",")
+        val statement = conn.prepareStatement("INSERT INTO `samples`(`name`,`filename`) VALUES " + unknowns + " ;")
+        samples.zipWithIndex.foreach { case (sample, i: Int) =>
+          statement.setString(2 * i + 1, sample.name)
+          statement.setString(2 * i + 2, sample.filename)
+        }
+        statement.execute()
+        Ok(s"Inserted ${samples.size} sample(s)")
       }
-      statement.execute()
-      Ok(s"Inserted ${samples.size} sample(s)")
     }
   }
 
@@ -46,14 +53,21 @@ class SamplesController @Inject()(db: Database) extends Controller {
     */
   def deleteSamples() = AdminAction(parse.json) { implicit request =>
 
+    val appId = request.user.appId
     val sampleNames = sampleNamesFromRequest
 
-    db.withConnection { conn =>
-      val unknowns: String = sampleNames.map(_ => "?").mkString(",")
-      val statement = conn.prepareStatement("DELETE FROM `samples` WHERE `name` IN ("+unknowns+") ;")
-      sampleNames.zipWithIndex.foreach {case (name, i: Int) => statement.setString(i+1, name)}
-      statement.execute()
-      Ok(s"Deleted ${sampleNames.size} sample(s)")
+    val sampleCounts: Seq[Int] = sampleNames.map(sname => findSampleBySampleName(db, sname, appId))
+    if (sampleCounts.contains(0)) {
+      val unknownSampleName = sampleNames(sampleCounts.find(_ == 0).get)
+      InternalServerError(s"Cannot delete sample '$unknownSampleName' because it does not exist. Nothing was deleted.")
+    } else {
+      db.withConnection { conn =>
+        val unknowns: String = sampleNames.map(_ => "?").mkString(",")
+        val statement = conn.prepareStatement("DELETE FROM `samples` WHERE `name` IN (" + unknowns + ") ;")
+        sampleNames.zipWithIndex.foreach { case (name, i: Int) => statement.setString(i + 1, name) }
+        statement.execute()
+        Ok(s"Deleted ${sampleNames.size} sample(s)")
+      }
     }
   }
 
@@ -85,5 +99,23 @@ object SamplesController {
     }
     sampleNames
   }
+
+  /**
+    * Return the number of samples found with this *sampleName* and *appId* in the database.
+    */
+  def findSampleBySampleName(db: Database, sampleName: String, appId: Int): Int = {
+    db.withConnection { conn =>
+      val statement = conn.prepareStatement("SELECT `id` FROM `samples` WHERE name = ? ;")
+      statement.setString(1, sampleName)
+      //statement.setInt(2, appId)
+      val result = statement.executeQuery()
+      var count = 0
+      while (result.next()) {
+        count += 1
+      }
+      count
+    }
+  }
+
 
 }

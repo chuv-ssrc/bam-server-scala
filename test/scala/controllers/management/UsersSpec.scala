@@ -28,7 +28,7 @@ class UsersSpec extends PlaySpec with OneAppPerSuite with WithToken with WithDat
       count must equal(count0 + 2)
     }
 
-    "fail if one of the users already exists" in {
+    "fail and insert nothing if one of the users already exists" in {
       val body = Json.parse("""
         { "users": [{"username": "A"}, {"username": "B"}] }
       """)
@@ -49,13 +49,12 @@ class UsersSpec extends PlaySpec with OneAppPerSuite with WithToken with WithDat
       """)
       val count0 = countRows(db, "users")
       val response = route(app, FakeAdminRequest(DELETE, "/users").withJsonBody(body)).get
-      println(contentAsString(response))
       status(response) mustBe OK
       val count = countRows(db, "users")
       count must equal(count0 - 2)
     }
 
-    "fail if one of the users does not exist" in {
+    "fail and delete nothing if one of the users does not exist" in {
       val body = Json.parse("""
         { "users": ["A","C"] }
       """)
