@@ -2,7 +2,7 @@ package controllers.management
 
 import javax.inject._
 
-import auth.{AdminAction, AuthenticatedAction, AuthenticatedRequest}
+import auth.{AdminAction, AuthenticatedRequest}
 import forms.UsersForm
 import models.User
 import play.api.db.Database
@@ -17,9 +17,16 @@ class UsersController @Inject()(db: Database) extends Controller {
 
   val AdminAction = new AdminAction(db)
 
+  /**
+    * From the request body, make a list of Users - for insertion.
+    * Give them the same appId as the admin user executing the action.
+    *
+    * N.B. In any case a web interface will be proper to a given app,
+    * and a global admin can have an account by several auth providers.
+    * There is no case when we want to add several users from multiple apps in one query.
+    */
   def usersFromRequest(implicit request: AuthenticatedRequest[JsValue]): Seq[User] = {
     // Get the app ID from the user executing the action;
-    //  he cannot add anything on behalf of another app anyway.
     val appId = request.user.appId
 
     val usersJs: JsArray = (request.body \ "users").asOpt[JsArray] getOrElse {
@@ -33,6 +40,9 @@ class UsersController @Inject()(db: Database) extends Controller {
     users
   }
 
+  /**
+    * Extract the list of user names passed in request body, to a list of Strings - for deletion.
+    */
   def usernamesFromRequest(implicit request: AuthenticatedRequest[JsValue]): Seq[String] = {
     val usernamesJs: JsArray = (request.body \ "users").asOpt[JsArray] getOrElse {
       throw new IllegalArgumentException("Could not cast usernames array from request body to JsArray")
