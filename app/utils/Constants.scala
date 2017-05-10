@@ -9,11 +9,15 @@ import com.typesafe.config.ConfigFactory
   */
 object Constants {
 
-  private def getConfigPath(key:String): String = {
-    Paths.get(ConfigFactory.load().getString(key)).toAbsolutePath.toString
+  private val config = ConfigFactory.load()
+
+  private def getConfigPath(key: String): String = {
+    Paths.get(config.getString(key)).toAbsolutePath.toString
   }
 
-  val TEST_MODE: Boolean = ConfigFactory.load().getBoolean("env.TEST_MODE")
+  val TEST_MODE: Boolean = config.getBoolean("env.TEST_MODE")
   val BAM_PATH: String = getConfigPath("env.BAM_PATH")
+  val TOKEN_USER_KEY: String = config.getString("env.TOKEN_USER_KEY")
+  val TOKEN_ISS_KEY: String = config.getString("env.TOKEN_ISS_KEY")
 
 }

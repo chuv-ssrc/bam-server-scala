@@ -10,6 +10,7 @@ import scala.util.Try
 import play.api.libs.json._
 import models.User
 import utils.Common._
+import utils.Constants._
 import auth.RSA._
 import play.api.db.Database
 
@@ -17,6 +18,11 @@ import play.api.db.Database
 @Singleton
 class Auth @Inject()(db: Database) {
 
+  /**
+    * Given the name of an RSA public key file, return the PublicKey object.
+    * @param keyFile: the name of the file containing the public RSA key, including the .crt/.pem extension.
+    * @param path: the path to the directory containing the RSA public key certificates.
+    */
   private def getPublicKey(keyFile: String, path: String = "resources/rsa_keys"): PublicKey = {
     /* Try to find a certificate in *path* with extension ".cer" */
     findInTree(path, "cer") find {_.getName == keyFile} map {
@@ -34,20 +40,28 @@ class Auth @Inject()(db: Database) {
   /**
     * Read the "iss" (issuer) claim from JWT and return its value (the app name).
     * @param claim
-    * @return
     */
   private def issFromClaim(claim: JsObject): String = {
-    (claim \ "iss").asOpt[String] getOrElse {
+    (claim \ TOKEN_ISS_KEY).asOpt[String] getOrElse {
       throw new IllegalArgumentException("No 'iss' claim found in token (to identify the issuer)")
     }
   }
 
+  /**
+    * Read the "username" claim from JWT and return its value (the user name).
+    * @param claim
+    */
   private def userFromClaim(claim: JsObject): String = {
-    (claim \ "name").asOpt[String] getOrElse {
+    (claim \ TOKEN_USER_KEY).asOpt[String] getOrElse {
       throw new IllegalArgumentException("No 'name' claim found in token (username)")
     }
   }
 
+  /**
+    * Search the database for an app with identifier *iss*.
+    * Return a couple (appId, keyFile).
+    * @param iss: the app name/identifier, as it is in the JWT under the "iss" claim.
+    */
   private def appFromDatabase(iss: String): (Int, String) = {
     db.withConnection { conn =>
       val statement = conn.prepareStatement("SELECT `id`,`keyFile` FROM `apps` WHERE `iss`=?;")
@@ -65,6 +79,10 @@ class Auth @Inject()(db: Database) {
     }
   }
 
+  /**
+    * Search the database for a user with identifier *username* for this *appId*.
+    * Return a User object.
+    */
   private def userFromDatabase(username: String, appId: Int): User = {
     db.withConnection { conn =>
       val statement = conn.prepareStatement("SELECT * FROM `users` WHERE `username`=? AND `app_id`=?;")
@@ -83,9 +101,11 @@ class Auth @Inject()(db: Database) {
     }
   }
 
+  /**
+    * First get the claim without verification, to read the app name from the "iss" claim
+    * and read the corresponding public key, then validate the token.
+    */
   def validateToken(jwt: String, db: Database): Try[User] = {
-    /* First get the claim without verification, to read the app name from the "iss" claim
-       and read the corresponding public key, then we can validate the token. */
     JwtJson.decodeJson(jwt, JwtOptions(signature = false)) flatMap { claim =>
       for {
         iss <- Try(issFromClaim(claim))
