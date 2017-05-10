@@ -93,7 +93,7 @@ class Auth @Inject()(db: Database) {
       while (result.next()) {
         val isActive = result.getBoolean("isActive")
         val isAdmin = result.getBoolean("isAdmin")
-        res = Some(User(Some(appId), username, isActive=isActive, isAdmin=isAdmin))
+        res = Some(User(appId, username, isActive=isActive, isAdmin=isAdmin))
       }
       res getOrElse {
         throw new IllegalArgumentException(s"Could not find user '$username' with app_id=$appId in the database")

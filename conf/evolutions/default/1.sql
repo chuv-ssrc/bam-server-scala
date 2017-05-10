@@ -11,7 +11,7 @@ CREATE TABLE `apps` (
 
 CREATE TABLE `users` (
     `id` INTEGER(11) NOT NULL PRIMARY KEY AUTO_INCREMENT,
-    `app_id` INTEGER(11) DEFAULT NULL,
+    `app_id` INTEGER(11) NOT NULL,
     `username` VARCHAR(255) NOT NULL,
     `group` VARCHAR(255) DEFAULT NULL,
     `isActive` TINYINT(1) DEFAULT 0,
