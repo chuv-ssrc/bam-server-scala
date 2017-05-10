@@ -19,3 +19,4 @@ activator*
 *.bam*
 *.sam
 
+/resources/bam/readme.txt

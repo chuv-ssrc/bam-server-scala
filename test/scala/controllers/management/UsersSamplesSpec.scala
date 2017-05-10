@@ -16,8 +16,8 @@ class UsersSamplesSpec extends PlaySpec with OneAppPerSuite with WithToken with 
   "Add an attribution" should {
 
     "add rows to the users_samples table" in {
-      val body = Json.parse("""
-        { "users_samples": [{"sample": "testkey", "username": "testuser"}, {"sample": "inactivekey", "username": "testuser"}] }
+      val body = Json.parse(s"""
+        { "users_samples": [{"sample": "$testkey", "username": "testuser"}, {"sample": "$inactivekey", "username": "testuser"}] }
       """)
       val db = dbContext.db
       val count0 = countRows(db, "users_samples")
@@ -32,8 +32,8 @@ class UsersSamplesSpec extends PlaySpec with OneAppPerSuite with WithToken with 
   "Delete an attribution" should {
 
     "remove rows from the users_samples table" in {
-      val body = Json.parse("""
-        { "users_samples": [{"sample": "testkey", "username": "testuser"}, {"sample": "inactivekey", "username": "testuser"}] }
+      val body = Json.parse(s"""
+        { "users_samples": [{"sample": "$testkey", "username": "testuser"}, {"sample": "$inactivekey", "username": "testuser"}] }
       """)
       val db = dbContext.db
       val count0 = countRows(db, "users_samples")

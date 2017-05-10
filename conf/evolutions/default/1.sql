@@ -39,16 +39,17 @@ CREATE TABLE `users_samples` (
 );
 
 
-INSERT INTO `apps` VALUES (1, 'https://jdelafon.eu.auth0.com/', 'auth0.cer', 'using a public certificate in .cer format');
-INSERT INTO `apps` VALUES (2, 'test', 'id_rsa.pub', 'using only a public key in .pem format');
+INSERT INTO `apps` VALUES (1, 'https://jdelafon.eu.auth0.com/', 'auth0.cer', 'Using a public certificate in .cer format');
+INSERT INTO `apps` VALUES (2, 'test', 'id_rsa.pub', 'Using only a public key in .pem format');
 
 INSERT INTO `users` VALUES (1,1, 'testuser', NULL, 1, 0);
 INSERT INTO `users` VALUES (2,1, 'admin', NULL, 1, 1);
 INSERT INTO `users` VALUES (3,1, 'julien.delafontaine@yandex.com', NULL, 1, 1);
 
-INSERT INTO `samples` VALUES (1, 'testkey', 'test.bam', NULL, NULL, NULL, NULL, 1);
-INSERT INTO `samples` VALUES (2, 'notherekey', 'nothere.bam', NULL, NULL, NULL, NULL, 1);
-INSERT INTO `samples` VALUES (3, 'inactivekey', 'inactive.bam', NULL, NULL, NULL, NULL, 0);
+INSERT INTO `samples`(`name`,`filename`,`isActive`) VALUES ('sample1', 'test1.bam', 1);
+INSERT INTO `samples`(`name`,`filename`,`isActive`) VALUES ('sample2', 'test2.bam', 1);
+INSERT INTO `samples`(`name`,`filename`,`isActive`) VALUES ('notherekey', 'nothere.bam', 1);
+INSERT INTO `samples`(`name`,`filename`,`isActive`) VALUES ('inactivekey', 'inactive.bam', 0);
 
 INSERT INTO `users_samples` VALUES (4, 2, 1);
 INSERT INTO `users_samples` VALUES (5, 2, 2);
