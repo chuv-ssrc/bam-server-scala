@@ -82,18 +82,25 @@ class UsersController @Inject()(db: Database) extends Controller {
     */
   def addUsers() = AdminAction(parse.json) { implicit request =>
 
+    val appId = request.user.appId
     val users = usersFromRequest
     // they all get an appId from the admin requesting this
 
-    db.withConnection { conn =>
-      val unknowns: String = users.map(_ => "(?,?)").mkString(",")
-      val statement = conn.prepareStatement("INSERT INTO `users`(`app_id`,`username`) VALUES "+unknowns+" ;")
-      users.zipWithIndex.foreach { case (user, i: Int) =>
-        statement.setInt(2*i+1, user.appId)  // user.appId is always defined in this case
-        statement.setString(2*i+2, user.username)
+    val userCounts: Seq[Int] = users.map(u => findUserByUsername(u.username, appId))
+    if (userCounts.exists(_ > 0)) {
+      val dupUser = users(userCounts.find(_ > 0).get)
+      InternalServerError(s"Cannot insert user '${dupUser.username}' because it already exists. Nothing was inserted.")
+    } else {
+      db.withConnection { conn =>
+        val unknowns: String = users.map(_ => "(?,?)").mkString(",")
+        val statement = conn.prepareStatement("INSERT INTO `users`(`app_id`,`username`) VALUES " + unknowns + " ;")
+        users.zipWithIndex.foreach { case (user, i: Int) =>
+          statement.setInt(2 * i + 1, user.appId) // user.appId is always defined in this case
+          statement.setString(2 * i + 2, user.username)
+        }
+        statement.execute()
+        Ok(s"Inserted ${users.size} user(s)")
       }
-      statement.execute()
-      Ok(s"Inserted ${users.size} user(s)")
     }
   }
 
@@ -104,14 +111,21 @@ class UsersController @Inject()(db: Database) extends Controller {
     */
   def deleteUsers() = AdminAction(parse.json) { implicit request =>
 
+    val appId = request.user.appId
     val usernames: Seq[String] = usernamesFromRequest
 
-    db.withConnection { conn =>
-      val unknowns: String = usernames.map(_ => "?").mkString(",")
-      val statement = conn.prepareStatement("DELETE FROM `users` WHERE `username` IN ("+unknowns+") ;")
-      usernames.zipWithIndex.foreach {case (username, i: Int) => statement.setString(i+1, username)}
-      statement.execute()
-      Ok(s"Deleted ${usernames.size} user(s)")
+    val userCounts: Seq[Int] = usernames.map(uname => findUserByUsername(uname, appId))
+    if (userCounts.contains(0)) {
+      val unknownUsername = usernames(userCounts.find(_ == 0).get)
+      InternalServerError(s"Cannot delete user '$unknownUsername' because it does not exist. Nothing was deleted.")
+    } else {
+      db.withConnection { conn =>
+        val unknowns: String = usernames.map(_ => "?").mkString(",")
+        val statement = conn.prepareStatement("DELETE FROM `users` WHERE `username` IN (" + unknowns + ") ;")
+        usernames.zipWithIndex.foreach { case (username, i: Int) => statement.setString(i + 1, username) }
+        statement.execute()
+        Ok(s"Deleted ${usernames.size} user(s)")
+      }
     }
   }
 
