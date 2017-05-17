@@ -22,14 +22,14 @@ class BamQueryController @Inject()(db: Database, config: Configuration) extends 
   /**
     * Try to get the JSON body of a POST request;
     * Try to get the "sample" argument from the body;
-    * Make a BamRequest from that - see `keyToBamRequest`.
+    * Make a BamRequest from that - see `sampleNameToBamRequest`.
     */
   def parseBamRequestFromPost(request: Request[AnyContent]): Try[BamRequest] = {
     stringValueFromRequestBody(request, "sample") match {
       case None =>
         Failure(new Exception(s"No key found in request body."))
-      case Some(key: String) =>
-        keyToBamRequest(key)
+      case Some(sampleName: String) =>
+        sampleNameToBamRequest(sampleName)
     }
   }
 
@@ -38,12 +38,12 @@ class BamQueryController @Inject()(db: Database, config: Configuration) extends 
     * Check that the file it refers to exists/is readable on disk;
     * If so, return a Success(BamRequest).
     */
-  def keyToBamRequest(sample: String): Try[BamRequest] = {
-    val bamFilename: String = getBamName(db, sample)
+  def sampleNameToBamRequest(sampleName: String): Try[BamRequest] = {
+    val bamFilename: String = getBamName(db, sampleName)
     val bamPath: Path = Paths.get(BAM_PATH, bamFilename)
     val indexPath: Path = Paths.get(BAM_PATH, bamFilename + ".bai")
     if (bamFilename.isEmpty) {
-      Failure(new Exception(s"No corresponding BAM file for key $sample in database."))
+      Failure(new Exception(s"No corresponding BAM file for key $sampleName in database."))
     } else if (!isOnDisk(bamPath.toFile)) {
     //} else if (!bamPath.toFile.exists) {
       Failure(new Exception(s"This BAM file cannot be found at BAM_PATH=$BAM_PATH."))

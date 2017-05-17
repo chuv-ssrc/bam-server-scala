@@ -39,7 +39,7 @@ class SamtoolsController @Inject()(db: Database, config: Configuration) extends 
   }
 
   def bamGet(sample: String, token: Option[String], region: Option[String]) = AuthenticatedAction.async { implicit request =>
-    keyToBamRequest(sample) match {
+    sampleNameToBamRequest(sample) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)
         Future(InternalServerError(err.getMessage))

@@ -41,29 +41,36 @@ CREATE TABLE `users_samples` (
 );
 
 
-INSERT INTO `apps` VALUES (1, 'https://jdelafon.eu.auth0.com/', 'auth0.cer', 'Using a public certificate in .cer format', 1);
-INSERT INTO `apps` VALUES (2, 'test', 'id_rsa.pub', 'Using only a public key in .pem format', 1);
+INSERT INTO `apps` VALUES
+(1, 'https://jdelafon.eu.auth0.com/', 'auth0.cer', 'Using a public certificate in .cer format', 1),
+(2, 'test', 'id_rsa.pub', 'Using only a public key in .pem format', 1)
+;
 
-INSERT INTO `users` VALUES (1,1, 'testuser', NULL, 1, 0);
-INSERT INTO `users` VALUES (2,1, 'admin', NULL, 1, 1);
-INSERT INTO `users` VALUES (3,1, 'julien.delafontaine@yandex.com', NULL, 1, 1);
-INSERT INTO `users` VALUES (4,1, 'a@test.com', NULL, 1, 0);
-INSERT INTO `users` VALUES (5,1, 'b@test.com', NULL, 0, 0);
+INSERT INTO `users`(`app_id`,`username`,`isActive`,`isAdmin`) VALUES
+(1, 'testuser', 1, 0),
+(1, 'admin'   , 1, 1),
+(1, 'a@test.com', 1, 0),
+(1, 'b@test.com', 0, 0),
+(1, 'julien.delafontaine@yandex.com', 1, 1)
+;
 
-INSERT INTO `samples`(`name`,`filename`,`isActive`) VALUES ('sample1', 'test1.bam', 1);
-INSERT INTO `samples`(`name`,`filename`,`isActive`) VALUES ('sample2', 'test2.bam', 1);
-INSERT INTO `samples`(`name`,`filename`,`isActive`) VALUES ('notherekey', 'nothere.bam', 1);
-INSERT INTO `samples`(`name`,`filename`,`isActive`) VALUES ('inactivekey', 'inactive.bam', 0);
+INSERT INTO `samples`(`name`,`filename`,`isActive`) VALUES
+('sample1', 'test1.bam', 1),
+('sample2', 'test2.bam', 1),
+('notherekey', 'nothere.bam', 1),
+('inactivekey', 'inactive.bam', 0)
+;
 
-INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (2, 1);
-INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (2, 2);
-INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (2, 3);
-INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (2, 4);
-INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (3, 1);
-INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (3, 2);
-INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (3, 3);
-INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (3, 4);
-INSERT INTO `users_samples`(`user_id`,`sample_id`,`isActive`) VALUES (1, 1, 0);
+INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES
+(2, 1),
+(2, 2),
+(2, 3),
+(2, 4),
+(3, 1),
+(3, 2),
+(3, 3),
+(3, 4)
+;
 
 
 # --- !Downs

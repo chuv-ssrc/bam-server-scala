@@ -39,7 +39,7 @@ class IndexSpec extends PlaySpec with OneAppPerSuite with WithToken {
 
   }
 
-  "`keyToBamRequest`" should {
+  "`sampleNameToBamRequest`" should {
 
     "fail if the key is not known to the database (POST)" in {
       val body: JsValue = Json.parse(s"""{"sample": "xxx"}""")

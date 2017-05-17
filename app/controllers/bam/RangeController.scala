@@ -37,7 +37,7 @@ class RangeController @Inject()(db: Database, config: Configuration) extends Bam
   }
 
   def bamGet(sample: String, token: Option[String], range: Option[String]) = AuthenticatedAction { implicit request =>
-    keyToBamRequest(sample) match {
+    sampleNameToBamRequest(sample) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)
         InternalServerError(err.getMessage)
