@@ -21,11 +21,11 @@ class BamQueryController @Inject()(db: Database, config: Configuration) extends 
 
   /**
     * Try to get the JSON body of a POST request;
-    * Try to get the "key" argument from the body;
+    * Try to get the "sample" argument from the body;
     * Make a BamRequest from that - see `keyToBamRequest`.
     */
   def parseBamRequestFromPost(request: Request[AnyContent]): Try[BamRequest] = {
-    stringValueFromRequestBody(request, "key") match {
+    stringValueFromRequestBody(request, "sample") match {
       case None =>
         Failure(new Exception(s"No key found in request body."))
       case Some(key: String) =>

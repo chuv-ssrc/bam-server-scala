@@ -13,7 +13,7 @@ import scala.setup.WithToken
   */
 class RangeSpec extends PlaySpec with OneAppPerSuite with WithToken {
 
-  val body: JsValue = Json.parse(s"""{"key": "$testkey"}""")
+  val body: JsValue = Json.parse(s"""{"sample": "$testkey"}""")
   val headers = List(
     (AUTHORIZATION -> s"Bearer $auth0Token"),
     (RANGE -> s"bytes=0-65639")

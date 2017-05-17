@@ -47,18 +47,23 @@ INSERT INTO `apps` VALUES (2, 'test', 'id_rsa.pub', 'Using only a public key in 
 INSERT INTO `users` VALUES (1,1, 'testuser', NULL, 1, 0);
 INSERT INTO `users` VALUES (2,1, 'admin', NULL, 1, 1);
 INSERT INTO `users` VALUES (3,1, 'julien.delafontaine@yandex.com', NULL, 1, 1);
+INSERT INTO `users` VALUES (4,1, 'a@test.com', NULL, 1, 0);
+INSERT INTO `users` VALUES (5,1, 'b@test.com', NULL, 0, 0);
 
 INSERT INTO `samples`(`name`,`filename`,`isActive`) VALUES ('sample1', 'test1.bam', 1);
 INSERT INTO `samples`(`name`,`filename`,`isActive`) VALUES ('sample2', 'test2.bam', 1);
 INSERT INTO `samples`(`name`,`filename`,`isActive`) VALUES ('notherekey', 'nothere.bam', 1);
 INSERT INTO `samples`(`name`,`filename`,`isActive`) VALUES ('inactivekey', 'inactive.bam', 0);
 
-INSERT INTO `users_samples` VALUES (4, 2, 1, 1);
-INSERT INTO `users_samples` VALUES (5, 2, 2, 1);
-INSERT INTO `users_samples` VALUES (6, 2, 3, 1);
-INSERT INTO `users_samples` VALUES (7, 3, 1, 1);
-INSERT INTO `users_samples` VALUES (8, 3, 2, 1);
-INSERT INTO `users_samples` VALUES (9, 3, 3, 1);
+INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (2, 1);
+INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (2, 2);
+INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (2, 3);
+INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (2, 4);
+INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (3, 1);
+INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (3, 2);
+INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (3, 3);
+INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES (3, 4);
+INSERT INTO `users_samples`(`user_id`,`sample_id`,`isActive`) VALUES (1, 1, 0);
 
 
 # --- !Downs

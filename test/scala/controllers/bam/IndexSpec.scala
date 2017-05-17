@@ -42,14 +42,14 @@ class IndexSpec extends PlaySpec with OneAppPerSuite with WithToken {
   "`keyToBamRequest`" should {
 
     "fail if the key is not known to the database (POST)" in {
-      val body: JsValue = Json.parse(s"""{"key": "xxx"}""")
+      val body: JsValue = Json.parse(s"""{"sample": "xxx"}""")
       val response = route(app, FakeAuthorizedRequest(POST, "/bai").withJsonBody(body)).get
       status(response) mustBe INTERNAL_SERVER_ERROR
       contentAsString(response) must startWith("No corresponding BAM file")
     }
 
     "fail if the key exists but the bam file is not found on disk (POST)" in {
-      val body: JsValue = Json.parse(s"""{"key": "$notherekey"}""")
+      val body: JsValue = Json.parse(s"""{"sample": "$notherekey"}""")
       val response = route(app, FakeAuthorizedRequest(POST, "/bai").withJsonBody(body)).get
       status(response) mustBe INTERNAL_SERVER_ERROR
       contentAsString(response) must startWith("This BAM file cannot be found")
@@ -72,7 +72,7 @@ class IndexSpec extends PlaySpec with OneAppPerSuite with WithToken {
   "IndexController" should {
 
     "provide the BAM index if everything is right (POST)" in {
-      val body: JsValue = Json.parse(s"""{"key": "$testkey"}""")
+      val body: JsValue = Json.parse(s"""{"sample": "$testkey"}""")
       val response = route(app, FakeAuthorizedRequest(POST, "/bai").withJsonBody(body)).get
       status(response) mustBe OK
       contentType(response).get mustBe BINARY  // application/octet-stream

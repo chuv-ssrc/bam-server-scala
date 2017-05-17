@@ -30,14 +30,14 @@ class UsersSamplesController @Inject()(db: Database) extends Controller {
     val sampleIds = getSampleIds(db, usersSamples.map(_.sample))
 
     val counts: Seq[Int] = (userIds zip sampleIds).map(us => findUsersSamples(db, us._1, us._2))
-    val notExistYet = (userIds zip sampleIds).zipWithIndex.filter(x => counts(x._2) == 0)
-    
+    val notExistYet = (userIds zip sampleIds).zipWithIndex.filter(x => counts(x._2) == 0).map(_._1).zipWithIndex
+
     if (notExistYet.nonEmpty) {
       db.withConnection { conn =>
         val unknowns: String = notExistYet.map(_ => "(?,?)").mkString(",")
         val statement = conn.prepareStatement(s"""
-        INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES $unknowns ;
-      """)
+          INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES $unknowns ;
+        """)
         notExistYet.foreach { case ((uid, sid), i) =>
           statement.setInt(2 * i + 1, uid)
           statement.setInt(2 * i + 2, sid)

@@ -15,7 +15,7 @@ import scala.setup.WithToken
   */
 class JsonSpec extends PlaySpec with OneAppPerSuite with WithToken {
 
-  val body: JsValue = Json.parse(s"""{"key": "$testkey"}""")
+  val body: JsValue = Json.parse(s"""{"sample": "$testkey"}""")
   val headers = (AUTHORIZATION -> s"Bearer $auth0Token")
   val nreads = 579
 
