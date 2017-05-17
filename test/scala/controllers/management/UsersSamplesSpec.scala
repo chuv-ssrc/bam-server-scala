@@ -19,7 +19,7 @@ class UsersSamplesSpec extends PlaySpec with OneAppPerSuite with WithToken with 
 
     "add rows to the users_samples table" in {
       val body = Json.parse(s"""
-        { "users_samples": [{"sample": "$testkey", "username": "testuser"}, {"sample": "$inactivekey", "username": "testuser"}] }
+        { "users_samples": [{"sample": "$testSample3", "username": "$testUser"}, {"sample": "$testSample4", "username": "$testUser"}] }
       """)
       val count0 = countRows(db, "users_samples")
       val response = route(app, FakeAdminRequest(PUT, "/users_samples").withJsonBody(body)).get
@@ -30,7 +30,7 @@ class UsersSamplesSpec extends PlaySpec with OneAppPerSuite with WithToken with 
 
     "ignore adding users_samples that already exist" in {
       val body = Json.parse(s"""
-        { "users_samples": [{"sample": "$testkey", "username": "testuser"}, {"sample": "$inactivekey", "username": "testuser"}] }
+        { "users_samples": [{"sample": "$testSample3", "username": "$testUser"}, {"sample": "$testSample4", "username": "$testUser"}] }
       """)
       val count0 = countRows(db, "users_samples")
       val response = route(app, FakeAdminRequest(PUT, "/users_samples").withJsonBody(body)).get
@@ -41,7 +41,7 @@ class UsersSamplesSpec extends PlaySpec with OneAppPerSuite with WithToken with 
 
     "fail if a sample is not known" in {
       val body = Json.parse(s"""
-        { "users_samples": [{"sample": "XXXX", "username": "testuser"}] }
+        { "users_samples": [{"sample": "XXXX", "username": "$testUser"}] }
       """)
       val count0 = countRows(db, "users_samples")
       val response = route(app, FakeAdminRequest(PUT, "/users_samples").withJsonBody(body)).get
@@ -53,7 +53,7 @@ class UsersSamplesSpec extends PlaySpec with OneAppPerSuite with WithToken with 
 
     "fail if a username is not known" in {
       val body = Json.parse(s"""
-        { "users_samples": [{"sample": "otherSample", "username": "XXXX"}] }
+        { "users_samples": [{"sample": "$testSample3", "username": "XXXX"}] }
       """)
       val count0 = countRows(db, "users_samples")
       val response = route(app, FakeAdminRequest(PUT, "/users_samples").withJsonBody(body)).get
@@ -69,7 +69,7 @@ class UsersSamplesSpec extends PlaySpec with OneAppPerSuite with WithToken with 
 
     "remove rows from the users_samples table" in {
       val body = Json.parse(s"""
-        { "users_samples": [{"sample": "$testkey", "username": "testuser"}, {"sample": "$inactivekey", "username": "testuser"}] }
+        { "users_samples": [{"sample": "$testSample3", "username": "$testUser"}, {"sample": "$testSample4", "username": "$testUser"}] }
       """)
       val count0 = countRows(db, "users_samples")
       val response = route(app, FakeAdminRequest(DELETE, "/users_samples").withJsonBody(body)).get
@@ -80,7 +80,7 @@ class UsersSamplesSpec extends PlaySpec with OneAppPerSuite with WithToken with 
 
     "ignore deleting non-existent users_samples" in {
       val body = Json.parse(s"""
-        { "users_samples": [{"sample": "$testkey", "username": "testuser"}, {"sample": "$inactivekey", "username": "testuser"}] }
+        { "users_samples": [{"sample": "$testSample3", "username": "$testUser"}, {"sample": "$testSample4", "username": "$testUser"}] }
       """)
       val count0 = countRows(db, "users_samples")
       val response = route(app, FakeAdminRequest(DELETE, "/users_samples").withJsonBody(body)).get
@@ -91,7 +91,7 @@ class UsersSamplesSpec extends PlaySpec with OneAppPerSuite with WithToken with 
 
     "fail if a sample is not known" in {
       val body = Json.parse(s"""
-        { "users_samples": [{"sample": "XXXX", "username": "testuser"}] }
+        { "users_samples": [{"sample": "XXXX", "username": "$testUser"}] }
       """)
       val count0 = countRows(db, "users_samples")
       val response = route(app, FakeAdminRequest(DELETE, "/users_samples").withJsonBody(body)).get

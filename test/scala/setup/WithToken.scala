@@ -12,20 +12,33 @@ import play.api.test.Helpers.GET
   */
 trait WithToken {
 
-  val auth0Token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik1UQTFNRGhHTUVRMVJUUXdOekJGTmpJME9FUkdPRFExUVRneE1rUTBNa0l5TkVWRU56QkROQSJ9.eyJlbWFpbCI6Imp1bGllbi5kZWxhZm9udGFpbmVAeWFuZGV4LmNvbSIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJ1c2VyX2lkIjoiYXV0aDB8NTg5NDhlMzViMGU4YzAwZjc0YjM4OTdkIiwiY2xpZW50SUQiOiJHNGJGV25wYXVsUmxIU2N5enpueE5aZVBqTnhaRzI4eSIsInBpY3R1cmUiOiJodHRwczovL3MuZ3JhdmF0YXIuY29tL2F2YXRhci9iOGJmYTc4NjY1ZGM2NzBhN2NiZjM5ODI0MzJiMmJiOD9zPTQ4MCZyPXBnJmQ9aHR0cHMlM0ElMkYlMkZjZG4uYXV0aDAuY29tJTJGYXZhdGFycyUyRmp1LnBuZyIsIm5pY2tuYW1lIjoianVsaWVuLmRlbGFmb250YWluZSIsImlkZW50aXRpZXMiOlt7InVzZXJfaWQiOiI1ODk0OGUzNWIwZThjMDBmNzRiMzg5N2QiLCJwcm92aWRlciI6ImF1dGgwIiwiY29ubmVjdGlvbiI6IlVzZXJuYW1lLVBhc3N3b3JkLUF1dGhlbnRpY2F0aW9uIiwiaXNTb2NpYWwiOmZhbHNlfV0sInVwZGF0ZWRfYXQiOiIyMDE3LTAzLTMwVDA4OjQ5OjAxLjY2N1oiLCJjcmVhdGVkX2F0IjoiMjAxNy0wMi0wM1QxNDowNTo0MS4zMzlaIiwibGFzdF9wYXNzd29yZF9yZXNldCI6IjIwMTctMDMtMjlUMTA6Mjk6NDQuMDcyWiIsIm5hbWUiOiJqdWxpZW4uZGVsYWZvbnRhaW5lQHlhbmRleC5jb20iLCJpc3MiOiJodHRwczovL2pkZWxhZm9uLmV1LmF1dGgwLmNvbS8iLCJzdWIiOiJhdXRoMHw1ODk0OGUzNWIwZThjMDBmNzRiMzg5N2QiLCJhdWQiOiJHNGJGV25wYXVsUmxIU2N5enpueE5aZVBqTnhaRzI4eSIsImV4cCI6MzE0OTA4NjM3NDEsImlhdCI6MTQ5MDg2Mzc0MSwibm9uY2UiOiJ0dHR0In0.fZECvmNaqCNwQXHXnzCsmsUlgvNeIIAdIkAJwFlRIaHH0E0qq9FHWVn6mSRLQLFF31gEkKA3fuQk3d7FapTmRyw8q1Fjtww4bTM9GOeTQpGnk1Q-12U5EFQ4EVcq6zPXQlspAyCjQlEQyjFvn7rxI59gRDgpG97n8hAnfLBXV0dw0yGsHcIZ_0odtHrh72ZvAIoIig6PbO5A3y9_sb4xuUQBbedltwfQ-bLSDTdJgd8gKUxfdwTE3YDLjDKn5-ekgt6heGMljGTTE7rr0qVUeMsY3fVAbKBCjsQIPkQgASRrwzatU9rRPkwZYwYy_01T8FiYR4JNs1QAiy749k22wQ"
+  // Public RSA key for test domain jdelafon.eu.auth0.com - bam-server - client ID: G4bFWnpaulRlHScyzznxNZePjNxZG28y
   val auth0PublicKey: PublicKey = readPublicKeyFromCertificate("resources/rsa_keys/auth0.cer")
+
+  // name = test@test.com
+  val auth0Token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik1UQTFNRGhHTUVRMVJUUXdOekJGTmpJME9FUkdPRFExUVRneE1rUTBNa0l5TkVWRU56QkROQSJ9.eyJuYW1lIjoidGVzdEB0ZXN0LmNvbSIsImVtYWlsIjoidGVzdEB0ZXN0LmNvbSIsImVtYWlsX3ZlcmlmaWVkIjpmYWxzZSwibmlja25hbWUiOiJ0ZXN0IiwidXNlcl9pZCI6ImF1dGgwfDU5MDlkYWUxNWVhMWM0NWExZWY0ZTBmZCIsImlzcyI6Imh0dHBzOi8vamRlbGFmb24uZXUuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDU5MDlkYWUxNWVhMWM0NWExZWY0ZTBmZCIsImF1ZCI6Ikc0YkZXbnBhdWxSbEhTY3l6em54TlplUGpOeFpHMjh5IiwiZXhwIjozMTQ5NTAzMDQxMCwiaWF0IjoxNDk1MDMwNDEwfQ.cE_Lqum2KNAFKgHMFSrsR-pLrxzoeITVxlmU_xYgPlNo2WzDv9DgCMdcW2V5xI19y0OEo8r8ZLD8YQiR1BLi8bmjyzFTDsxR7dLqSl_Tuv1LWZj4luwk-FkY4iUKUFBVN9MphKJ4cUEDpclPap_VvoMTuF_NYkotl669yYkDxq4F37tN1a9FTf-FB6iE1G5GtGZ4WBVhvcIxAfXGr6lfeW-NytSNsu0XZCUlLWl2MpR1xRWeNbO1IlBFjqlzXB8sHL6cRBHoVgMh8kC4IK6cL9AUHKmaR_8kQBdFBljDnijzDnqP_adDX5VBOS3Cujv16m0BYNokjaMw_C9sUKPNew"
+  // name = admin@test.com
+  val auth0AdminToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik1UQTFNRGhHTUVRMVJUUXdOekJGTmpJME9FUkdPRFExUVRneE1rUTBNa0l5TkVWRU56QkROQSJ9.eyJuYW1lIjoiYWRtaW5AdGVzdC5jb20iLCJlbWFpbCI6ImFkbWluQHRlc3QuY29tIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJuaWNrbmFtZSI6ImFkbWluIiwidXNlcl9pZCI6ImF1dGgwfDU5MWM1OTVkMDNjMDYyMDQyYjVlZDVkMCIsImlzcyI6Imh0dHBzOi8vamRlbGFmb24uZXUuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDU5MWM1OTVkMDNjMDYyMDQyYjVlZDVkMCIsImF1ZCI6Ikc0YkZXbnBhdWxSbEhTY3l6em54TlplUGpOeFpHMjh5IiwiZXhwIjozMTQ5NTAzMDUxMCwiaWF0IjoxNDk1MDMwNTEwfQ.pcu6AdxJKZh7V-YJHQaU_yPjKrrWmp_mOnKjuenU-wXJCjPqrpsXWeLg-YEFp_Trpd1TIb2DvbfOzxubzSpePqn4sMlojwTG8R50e1GGGG7M-omPWZtUCrc-RwHdK2OUp204qs0yRMJnKNkuZsq0Shpis3CwMLfdG1p8xo8NvavgZI5SiS7qeHwM7rD1Y7tjsqZ27DBBovkyiEUVnFnG7C0WS8IuBfEIVxLayXFIakqNcG5b4437mAmeFgt1Jj1m7XVaVuq4k8VW0JVrc0hWt-ujAeFLnbLk7s5Qgx7ky9z7xb2HdmwucTsa2fyhw30aOJirBrs234VVvw9r4BHEqA"
+
   val auth0Header = ("Authorization", "Bearer " + auth0Token)
+  val auth0AdminHeader = ("Authorization", "Bearer " + auth0AdminToken)
 
   def FakeAuthorizedRequest(method: String = GET, url: String) = {
     FakeRequest(method, url).withHeaders(auth0Header)
   }
 
   def FakeAdminRequest(method: String = GET, url: String) = {
-    FakeRequest(method, url).withHeaders(auth0Header)
+    FakeRequest(method, url).withHeaders(auth0AdminHeader)
   }
 
-  val testkey = "sample1"
-  val notherekey = "notherekey"
-  val inactivekey = "inactivekey"
+  val testUser = "test@test.com"
+  val adminUser = "admin@test.com"
+
+  val testSample1 = "sample1"  // samtools view -hb 141.bam chr1:762000-763000
+  val testSample2 = "sample2"  // samtools view -hb 141F.recal.bam 1:762000-763000
+  val testSample3 = "sample3"  // no bam
+  val testSample4 = "sample4"  // no bam
+  val notherekey = "notherekey"  // exists in database but not found on disk
+  val inactivekey = "inactivekey"  // exists in database but isActive = false
 
 }

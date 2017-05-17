@@ -20,7 +20,7 @@ import scala.setup.{WithDatabase, WithToken}
 class AuthSpec extends PlaySpec with WithToken with WithDatabase with OneAppPerSuite {
 
   /* To generate id_rsa, id_rsa.pub test files: */
-  //writeTestKeyPair(512)
+  //writetestSample1Pair(512)
 
   val db = dbContext.db
   val Auth = new Auth(db)

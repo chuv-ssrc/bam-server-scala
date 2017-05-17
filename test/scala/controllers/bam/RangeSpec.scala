@@ -13,7 +13,7 @@ import scala.setup.WithToken
   */
 class RangeSpec extends PlaySpec with OneAppPerSuite with WithToken {
 
-  val body: JsValue = Json.parse(s"""{"sample": "$testkey"}""")
+  val body: JsValue = Json.parse(s"""{"sample": "$testSample1"}""")
   val headers = List(
     (AUTHORIZATION -> s"Bearer $auth0Token"),
     (RANGE -> s"bytes=0-65639")
@@ -35,13 +35,13 @@ class RangeSpec extends PlaySpec with OneAppPerSuite with WithToken {
     }
 
     "provide a slice of the BAM if everything is right (GET)" in {
-      val response = route(app, FakeAuthorizedRequest(GET, s"/bam/range/$testkey?range=0-65639")).get
+      val response = route(app, FakeAuthorizedRequest(GET, s"/bam/range/$testSample1?range=0-65639")).get
       status(response) mustBe PARTIAL_CONTENT
       contentType(response).get mustBe BINARY
     }
 
     "provide a slice of the BAM if everything is right, with token in URL (GET)" in {
-      val response = route(app, FakeRequest(GET, s"/bam/range/$testkey?token=$auth0Token&range=0-65639")).get
+      val response = route(app, FakeRequest(GET, s"/bam/range/$testSample1?token=$auth0Token&range=0-65639")).get
       status(response) mustBe PARTIAL_CONTENT
       contentType(response).get mustBe BINARY
     }
@@ -56,7 +56,7 @@ class RangeSpec extends PlaySpec with OneAppPerSuite with WithToken {
     }
 
     "complain if none of the ranges overlap the resource (GET)" in {
-      val response = route(app, FakeAuthorizedRequest(GET, s"/bam/range/$testkey?range=151990-355919")).get
+      val response = route(app, FakeAuthorizedRequest(GET, s"/bam/range/$testSample1?range=151990-355919")).get
       status(response) mustBe REQUESTED_RANGE_NOT_SATISFIABLE
     }
 

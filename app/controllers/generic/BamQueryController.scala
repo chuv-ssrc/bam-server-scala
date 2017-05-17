@@ -11,8 +11,6 @@ import play.api.libs.json.JsValue
 import play.api.mvc.Controller
 import utils.BamUtils.getBamName
 import utils.Common.isOnDisk
-
-import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success, Try}
 
 
@@ -32,9 +30,10 @@ class BamQueryController @Inject()(db: Database, config: Configuration) extends 
       case None =>
         Failure(new Exception(s"No key found in request body."))
       case Some(sampleName: String) =>
-        val user: User = request.user
-        val canAccess: Boolean = canUserAccessSample(user, sampleName)
-        sampleNameToBamRequest(sampleName)
+        for {
+          bamRequest <- sampleNameToBamRequest(sampleName)
+          _ <- canUserAccessSample(request.user, sampleName)
+        } yield bamRequest
     }
   }
 
@@ -62,13 +61,14 @@ class BamQueryController @Inject()(db: Database, config: Configuration) extends 
     * @param user: User making a request for some sample.
     * @param sampleName: name of the sample the user tries to access.
     */
-  def canUserAccessSample(user: User, sampleName: String): Boolean = {
+  def canUserAccessSample(user: User, sampleName: String): Try[Boolean] = {
     db.withConnection { conn =>
       val statement = conn.prepareStatement(s"""
         SELECT count(*) FROM `users_samples`
           JOIN `samples` ON samples.id = users_samples.sample_id
           JOIN `users` ON users.id = users_samples.user_id
-        WHERE samples.name = ?
+        WHERE
+          samples.name = ?
           AND users.username = ?
           AND users.app_id = ?
           AND users_samples.isActive = 1 AND users.isActive = 1 AND samples.isActive = 1
@@ -81,7 +81,10 @@ class BamQueryController @Inject()(db: Database, config: Configuration) extends 
       while (res.next()) {
         accesses += res.getInt(1)
       }
-      accesses > 0
+      if (accesses > 0)
+        Success(true)
+      else
+        Failure(new Exception(s"User '${user.username}' is not allowed to access sample $sampleName."))
     }
   }
 

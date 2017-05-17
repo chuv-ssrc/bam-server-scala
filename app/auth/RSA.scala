@@ -29,7 +29,7 @@ object RSA {
     val publicKey: PublicKey = keyPair.getPublic.asInstanceOf[RSAPublicKey]
   }
 
-  def writeTestKeyPair(keySize: Int = 1024, path: String = "resources/rsa_keys/test"): Unit = {
+  def writetestSample1Pair(keySize: Int = 1024, path: String = "resources/rsa_keys/test"): Unit = {
     val keyPair = new RSAPair(keySize)
     writePublicKeyToPemFile(keyPair.publicKey, path +"/id_rsa.pub")
     writePrivateKeyToPemFile(keyPair.privateKey, path +"/id_rsa")

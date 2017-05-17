@@ -46,30 +46,23 @@ INSERT INTO `apps` VALUES
 (2, 'test', 'id_rsa.pub', 'Using only a public key in .pem format', 1)
 ;
 
-INSERT INTO `users`(`app_id`,`username`,`isActive`,`isAdmin`) VALUES
-(1, 'testuser', 1, 0),
-(1, 'admin'   , 1, 1),
-(1, 'a@test.com', 1, 0),
-(1, 'b@test.com', 0, 0),
-(1, 'julien.delafontaine@yandex.com', 1, 1)
+INSERT INTO `users`(`id`,`app_id`,`username`,`isActive`,`isAdmin`) VALUES
+(1, 1, 'test@test.com', 1, 0),
+(2, 1, 'admin@test.com', 1, 1)
 ;
 
-INSERT INTO `samples`(`name`,`filename`,`isActive`) VALUES
-('sample1', 'test1.bam', 1),
-('sample2', 'test2.bam', 1),
-('notherekey', 'nothere.bam', 1),
-('inactivekey', 'inactive.bam', 0)
+INSERT INTO `samples`(`id`,`name`,`filename`,`isActive`) VALUES
+(1, 'sample1', 'test1.bam', 1),
+(2, 'sample2', 'test2.bam', 1),
+(3, 'sample3', 'nothere.bam', 1),
+(4, 'sample4', 'nothere.bam', 1),
+(5, 'notherekey', 'nothere.bam', 1),
+(6, 'inactivekey', 'inactive.bam', 0)
 ;
 
 INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES
-(2, 1),
-(2, 2),
-(2, 3),
-(2, 4),
-(3, 1),
-(3, 2),
-(3, 3),
-(3, 4)
+(1, 1),        (1, 5),(1, 6),
+(2, 1),(2, 2), (2, 5),(2, 6)
 ;
 
 

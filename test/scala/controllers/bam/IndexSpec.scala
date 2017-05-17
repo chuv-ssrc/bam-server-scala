@@ -25,14 +25,14 @@ class IndexSpec extends PlaySpec with OneAppPerSuite with WithToken {
   "`parseBamRequestFromPost`" should {
 
     "fail if there is no JSON body" in {
-      val response = route(app, FakeAuthorizedRequest(POST, "/bai")).get
+      val response = route(app, FakeAdminRequest(POST, "/bai")).get
       status(response) mustBe UNSUPPORTED_MEDIA_TYPE
       // Caught at the 'Action(parse.json)' level
     }
 
     "fail if there is no key 'sample' in the body" in {
       val body: JsValue = Json.parse(s"""{"yyyy": "xxx"}""")
-      val response = route(app, FakeAuthorizedRequest(POST, "/bai").withJsonBody(body)).get
+      val response = route(app, FakeAdminRequest(POST, "/bai").withJsonBody(body)).get
       status(response) mustBe INTERNAL_SERVER_ERROR
       contentAsString(response) must startWith("No key found in request body")
     }
@@ -72,20 +72,20 @@ class IndexSpec extends PlaySpec with OneAppPerSuite with WithToken {
   "IndexController" should {
 
     "provide the BAM index if everything is right (POST)" in {
-      val body: JsValue = Json.parse(s"""{"sample": "$testkey"}""")
+      val body: JsValue = Json.parse(s"""{"sample": "$testSample1"}""")
       val response = route(app, FakeAuthorizedRequest(POST, "/bai").withJsonBody(body)).get
       status(response) mustBe OK
       contentType(response).get mustBe BINARY  // application/octet-stream
     }
 
     "provide the BAM index if everything is right (GET)" in {
-      val response = route(app, FakeAuthorizedRequest(GET, s"/bai/$testkey")).get
+      val response = route(app, FakeAuthorizedRequest(GET, s"/bai/$testSample1")).get
       status(response) mustBe OK
       contentType(response).get mustBe BINARY
     }
 
     "provide the BAM index if everything is right, with token in URL (GET)" in {
-      val response = route(app, FakeRequest(GET, s"/bai/$testkey?token=$auth0Token")).get
+      val response = route(app, FakeRequest(GET, s"/bai/$testSample1?token=$auth0Token")).get
       status(response) mustBe OK
       contentType(response).get mustBe BINARY
     }
