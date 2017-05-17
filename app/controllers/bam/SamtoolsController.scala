@@ -30,6 +30,8 @@ class SamtoolsController @Inject()(db: Database, config: Configuration) extends 
 
   def bamPost(region: Option[String]) = AuthenticatedAction.async(parse.json) { implicit request =>
     parseBamRequestFromPost(request) match {
+      case Failure(err: IllegalAccessException) =>
+        Future(Unauthorized(err.getMessage))
       case Failure(err) =>
         //Logger.debug(err.getMessage)
         Future(InternalServerError(err.getMessage))
@@ -39,7 +41,9 @@ class SamtoolsController @Inject()(db: Database, config: Configuration) extends 
   }
 
   def bamGet(sample: String, token: Option[String], region: Option[String]) = AuthenticatedAction.async { implicit request =>
-    sampleNameToBamRequest(sample) match {
+    sampleNameToBamRequest(sample, request.user) match {
+      case Failure(err: IllegalAccessException) =>
+        Future(Unauthorized(err.getMessage))
       case Failure(err) =>
         //Logger.debug(err.getMessage)
         Future(InternalServerError(err.getMessage))

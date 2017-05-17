@@ -28,6 +28,8 @@ class RangeController @Inject()(db: Database, config: Configuration) extends Bam
 
   def bamPost() = AuthenticatedAction(parse.json) { implicit request =>
     parseBamRequestFromPost(request) match {
+      case Failure(err: IllegalAccessException) =>
+        Unauthorized(err.getMessage)
       case Failure(err) =>
         //Logger.debug(err.getMessage)
         InternalServerError(err.getMessage)
@@ -37,7 +39,9 @@ class RangeController @Inject()(db: Database, config: Configuration) extends Bam
   }
 
   def bamGet(sample: String, token: Option[String], range: Option[String]) = AuthenticatedAction { implicit request =>
-    sampleNameToBamRequest(sample) match {
+    sampleNameToBamRequest(sample, request.user) match {
+      case Failure(err: IllegalAccessException) =>
+        Unauthorized(err.getMessage)
       case Failure(err) =>
         //Logger.debug(err.getMessage)
         InternalServerError(err.getMessage)

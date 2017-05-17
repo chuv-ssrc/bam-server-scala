@@ -30,6 +30,8 @@ class IndexController @Inject()(db: Database, config: Configuration) extends Bam
 
   def baiPost = AuthenticatedAction.async(parse.json) { implicit request =>
     parseBamRequestFromPost(request) match {
+      case Failure(err: IllegalAccessException) =>
+        Future(Unauthorized(err.getMessage))
       case Failure(err) =>
         // Logger.debug(err.getMessage)
         Future(InternalServerError(err.getMessage))
@@ -39,9 +41,10 @@ class IndexController @Inject()(db: Database, config: Configuration) extends Bam
   }
 
   def baiGet(sample: String, token: Option[String]) = AuthenticatedAction.async { implicit request =>
-    sampleNameToBamRequest(sample) match {
-      case Failure(err) =>
-        // Logger.debug(err.getMessage)
+    sampleNameToBamRequest(sample, request.user) match {
+      case Failure(err: IllegalAccessException) =>
+        Future(Unauthorized(err.getMessage))
+      case Failure(err) =>        // Logger.debug(err.getMessage)
         Future(InternalServerError(err.getMessage))
       case Success(br: BamRequest) =>
         getBamIndex(br)

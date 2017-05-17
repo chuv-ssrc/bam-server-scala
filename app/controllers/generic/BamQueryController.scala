@@ -30,10 +30,7 @@ class BamQueryController @Inject()(db: Database, config: Configuration) extends 
       case None =>
         Failure(new Exception(s"No key found in request body."))
       case Some(sampleName: String) =>
-        for {
-          bamRequest <- sampleNameToBamRequest(sampleName)
-          _ <- canUserAccessSample(request.user, sampleName)
-        } yield bamRequest
+        sampleNameToBamRequest(sampleName, request.user)
     }
   }
 
@@ -42,15 +39,17 @@ class BamQueryController @Inject()(db: Database, config: Configuration) extends 
     * Check that the file it refers to exists/is readable on disk;
     * If so, return a Success(BamRequest).
     */
-  def sampleNameToBamRequest(sampleName: String): Try[BamRequest] = {
+  def sampleNameToBamRequest(sampleName: String, user: User): Try[BamRequest] = {
     val bamFilename: String = getBamName(db, sampleName)
     val bamPath: Path = Paths.get(BAM_PATH, bamFilename)
     val indexPath: Path = Paths.get(BAM_PATH, bamFilename + ".bai")
     if (bamFilename.isEmpty) {
       Failure(new Exception(s"No corresponding BAM file for key $sampleName in database."))
     } else if (!isOnDisk(bamPath.toFile)) {
-    //} else if (!bamPath.toFile.exists) {
+      //} else if (!bamPath.toFile.exists) {
       Failure(new Exception(s"This BAM file cannot be found at BAM_PATH=$BAM_PATH."))
+    } else if (! canUserAccessSample(user, sampleName)) {
+      Failure(new IllegalAccessException(s"User '${user.username}' is not allowed to access sample '$sampleName'."))
     } else {
       Success(BamRequest(bamPath.toFile, indexPath.toFile))
     }
@@ -61,7 +60,7 @@ class BamQueryController @Inject()(db: Database, config: Configuration) extends 
     * @param user: User making a request for some sample.
     * @param sampleName: name of the sample the user tries to access.
     */
-  def canUserAccessSample(user: User, sampleName: String): Try[Boolean] = {
+  def canUserAccessSample(user: User, sampleName: String): Boolean = {
     db.withConnection { conn =>
       val statement = conn.prepareStatement(s"""
         SELECT count(*) FROM `users_samples`
@@ -81,10 +80,7 @@ class BamQueryController @Inject()(db: Database, config: Configuration) extends 
       while (res.next()) {
         accesses += res.getInt(1)
       }
-      if (accesses > 0)
-        Success(true)
-      else
-        Failure(new Exception(s"User '${user.username}' is not allowed to access sample $sampleName."))
+      accesses > 0
     }
   }
 
