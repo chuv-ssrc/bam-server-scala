@@ -2,12 +2,14 @@ package controllers.bam
 
 import javax.inject._
 
-import auth.AuthenticatedAction
+import auth.{AuthenticatedAction, AuthenticatedRequest}
 import controllers.generic.BamQueryController
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import models.BamRequest
 import play.api.Configuration
 import play.api.db.Database
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 import utils.BamUtils._
 import utils.Common._
@@ -26,7 +28,7 @@ class IndexController @Inject()(db: Database, config: Configuration) extends Bam
 
   //------------------ Actions -------------------//
 
-  def baiPost = AuthenticatedAction.async { implicit request =>
+  def baiPost = AuthenticatedAction.async(parse.json) { implicit request =>
     parseBamRequestFromPost(request) match {
       case Failure(err) =>
         // Logger.debug(err.getMessage)
@@ -51,7 +53,7 @@ class IndexController @Inject()(db: Database, config: Configuration) extends Bam
   /**
     * Async because of `indexBam`.
     */
-  def getBamIndex(br: BamRequest)(implicit request: Request[AnyContent]): Future[Result] = {
+  def getBamIndex(br: BamRequest): Future[Result] = {
     /* Index not found, try to index */
     if (!isOnDisk(br.indexFile)) {
       /* Cannot index because no samtools not found */

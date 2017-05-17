@@ -39,7 +39,7 @@ class JsonController @Inject()(db: Database, config: Configuration) extends BamQ
 
   //------------------ Actions -------------------//
 
-  def bamPost(region: Option[String]) = AuthenticatedAction { implicit request =>
+  def bamPost(region: Option[String]) = AuthenticatedAction(parse.json) { implicit request =>
     parseBamRequestFromPost(request) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)

@@ -26,11 +26,11 @@ class IndexSpec extends PlaySpec with OneAppPerSuite with WithToken {
 
     "fail if there is no JSON body" in {
       val response = route(app, FakeAuthorizedRequest(POST, "/bai")).get
-      status(response) mustBe INTERNAL_SERVER_ERROR
-      contentAsString(response) must startWith("No key found in request body")
+      status(response) mustBe UNSUPPORTED_MEDIA_TYPE
+      // Caught at the 'Action(parse.json)' level
     }
 
-    "fail if there is no 'key' in the body" in {
+    "fail if there is no key 'sample' in the body" in {
       val body: JsValue = Json.parse(s"""{"yyyy": "xxx"}""")
       val response = route(app, FakeAuthorizedRequest(POST, "/bai").withJsonBody(body)).get
       status(response) mustBe INTERNAL_SERVER_ERROR

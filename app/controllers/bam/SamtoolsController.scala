@@ -28,7 +28,7 @@ class SamtoolsController @Inject()(db: Database, config: Configuration) extends 
 
   //------------------ Actions -------------------//
 
-  def bamPost(region: Option[String]) = AuthenticatedAction.async { implicit request =>
+  def bamPost(region: Option[String]) = AuthenticatedAction.async(parse.json) { implicit request =>
     parseBamRequestFromPost(request) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)

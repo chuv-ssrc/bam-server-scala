@@ -26,7 +26,7 @@ class RangeController @Inject()(db: Database, config: Configuration) extends Bam
 
   //------------------ Actions -------------------//
 
-  def bamPost() = AuthenticatedAction { implicit request =>
+  def bamPost() = AuthenticatedAction(parse.json) { implicit request =>
     parseBamRequestFromPost(request) match {
       case Failure(err) =>
         //Logger.debug(err.getMessage)

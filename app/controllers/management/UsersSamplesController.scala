@@ -2,7 +2,7 @@ package controllers.management
 
 import javax.inject._
 
-import auth.{AdminAction, AuthenticatedAction, AuthenticatedRequest}
+import auth.{AdminAction, AuthenticatedRequest}
 import forms.UsersSamplesForm
 import models.UserSample
 import play.api.Logger

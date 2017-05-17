@@ -3,9 +3,6 @@ package utils
 import java.io.File
 import java.nio.file.Paths
 import java.security.MessageDigest
-
-import play.api.libs.json.JsValue
-import play.api.mvc.{AnyContent, Request}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -15,15 +12,6 @@ import sys.process._
 
 
 object Common {
-
-  /**
-    * Get a String value from the body of a POST request, given its key.
-    */
-  def stringValueFromRequestBody(request: Request[AnyContent], key: String): Option[String] = {
-    request.body.asJson flatMap { body: JsValue =>
-      (body \ key).asOpt[String]
-    }
-  }
 
   /**
     * Hash a string
