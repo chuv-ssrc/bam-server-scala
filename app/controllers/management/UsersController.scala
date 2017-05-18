@@ -66,8 +66,13 @@ class UsersController @Inject()(db: Database) extends Controller {
         val unknowns: String = usernames.map(_ => "?").mkString(",")
         val statement = conn.prepareStatement("DELETE FROM `users` WHERE `username` IN (" + unknowns + ") ;")
         usernames.zipWithIndex.foreach { case (username, i: Int) => statement.setString(i + 1, username) }
-        statement.execute()
-        Ok(s"Deleted ${usernames.size} user(s)")
+        try {
+          statement.execute()
+          Ok(s"Deleted ${usernames.size} user(s)")
+        } catch {
+          case err: org.h2.jdbc.JdbcSQLException => InternalServerError("" +
+            "SQL error (probably trying to remove a user that has a sample attributed to. " +
+            "Delete the attribution first): "+ err.getMessage)        }
       }
     }
   }

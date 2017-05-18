@@ -22,7 +22,7 @@ class UsersSamplesController @Inject()(db: Database) extends Controller {
   /**
     * Add one or more users_samples rows to the database.
     * Expects a JSON body of the type
-    * ```{ "users": [{"username": "A"}, {"username": "B"}] }```
+    * ```{ "users_samples": [{"sample": "S1", "username": "A"}, {"sample": "S2", "username": "B"}] }```
     */
   def addUsersSamples() = AdminAction(parse.json) { implicit request =>
 
@@ -71,7 +71,7 @@ class UsersSamplesController @Inject()(db: Database) extends Controller {
   /**
     * Delete one or more users_samples rows from the database.
     * Expects a JSON body of the type
-    * ```{ "users": ["A","B"] }```
+    * ```{ "users_samples": [{"sample": "S1", "username": "A"}, {"sample": "S2", "username": "B"}] }```
     */
   def deleteUsersSamples() = AdminAction(parse.json) { implicit request =>
 

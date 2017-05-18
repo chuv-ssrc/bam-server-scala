@@ -56,8 +56,13 @@ class AppsController @Inject()(db: Database) extends Controller {
       db.withConnection { conn =>
         val statement = conn.prepareStatement("DELETE FROM `apps` WHERE `iss` = ? ;")
         statement.setString(1, iss)
-        statement.execute()
-        Ok(s"Deleted app '$iss'")
+        try {
+          statement.execute()
+          Ok(s"Deleted app '$iss'")
+        } catch {
+          case err: org.h2.jdbc.JdbcSQLException => InternalServerError("" +
+            "SQL error (probably trying to remove an application that has users attributed to. " +
+            "Delete the dependent users first): "+ err.getMessage)        }
       }
     }
   }

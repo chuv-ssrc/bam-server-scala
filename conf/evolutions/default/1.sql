@@ -15,7 +15,7 @@ CREATE TABLE `users` (
     `app_id` INTEGER(11) NOT NULL,
     `username` VARCHAR(255) NOT NULL,
     `group` VARCHAR(255) DEFAULT NULL,
-    `isActive` TINYINT(1) DEFAULT 0,
+    `isActive` TINYINT(1) DEFAULT 1,
     `isAdmin` TINYINT(1) DEFAULT 0,
     FOREIGN KEY (`app_id`) REFERENCES `apps`(`id`)
 );
