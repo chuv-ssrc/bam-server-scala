@@ -23,7 +23,7 @@ class AppsSpec extends PlaySpec with OneAppPerSuite with WithToken with WithData
     }
 
     "return 1 if the app already exists" in {
-      AppsController.findAppByIss(db, "test") must equal(1)
+      AppsController.findAppByIss(db, "testapp") must equal(1)
     }
 
   }
@@ -32,7 +32,7 @@ class AppsSpec extends PlaySpec with OneAppPerSuite with WithToken with WithData
 
     "add one rows to the app table" in {
       val body = Json.parse("""
-        { "iss": "testApp", "keyFile": "/", "description": "none" }
+        { "iss": "testApp", "key": "/", "description": "none" }
       """)
       val count0 = countRows(db, "apps")
       val response = route(app, FakeAdminRequest(PUT, "/apps").withJsonBody(body)).get
@@ -43,7 +43,7 @@ class AppsSpec extends PlaySpec with OneAppPerSuite with WithToken with WithData
 
     "fail if the app already exists" in {
       val body = Json.parse("""
-        { "iss": "testApp", "keyFile": "/", "description": "none" }
+        { "iss": "testApp", "key": "/", "description": "none" }
       """)
       val count0 = countRows(db, "apps")
       val response = route(app, FakeAdminRequest(PUT, "/apps").withJsonBody(body)).get

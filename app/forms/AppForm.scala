@@ -8,7 +8,7 @@ object AppForm {
   def fromJson(j: JsValue): App = {
     App(
       (j \ "iss").as[String],
-      (j \ "keyFile").as[String],
+      (j \ "key").as[String],
       (j \ "description").asOpt[String]
     )
   }

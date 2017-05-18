@@ -8,7 +8,7 @@ import play.api.db.Database
 
 object PEMFile {
 
-  def read(path: String): PemObject = {
+  def readFromFile(path: String): PemObject = {
     val pemReader: PemReader = new PemReader(new InputStreamReader(new FileInputStream(path)))
     try {
       pemReader.readPemObject()
@@ -17,7 +17,7 @@ object PEMFile {
     }
   }
 
-  def write(key: Key, description: String, filename: String): Unit = {
+  def writeToFile(key: Key, description: String, filename: String): Unit = {
     val pemObject = new PemObject(description, key.getEncoded)
     val pemWriter: PemWriter = new PemWriter(new OutputStreamWriter(new FileOutputStream(filename)))
     try {
@@ -27,41 +27,50 @@ object PEMFile {
     }
   }
 
-  def writeToDb(appName: String, db: Database, key: Key, description: String): Unit = {
-    val pemObject = new PemObject(description, key.getEncoded)
-    db.withConnection { conn =>
-      val stringWriter = new StringWriter()
-      val pemWriter: PemWriter = new PemWriter(stringWriter)
-      try {
-        pemWriter.writeObject(pemObject)
-      } finally {
-        pemWriter.close()
-      }
-      val statement = conn.prepareStatement("""
-          INSERT INTO `apps`(`keyFile`) VALUES (?) WHERE app = ?
-        """)
-      statement.setString(1, stringWriter.toString)
-      statement.setString(2, appName)
-      statement.execute()
+  def readFromString(keyString: String): PemObject = {
+    val stringReader = new StringReader(keyString)
+    val pemReader: PemReader = new PemReader(stringReader)
+    try {
+      pemReader.readPemObject()
+    } finally {
+      pemReader.close()
     }
   }
 
-  def readFromDb(db: Database, appName: String): PemObject = {
+  def writeToString(key: Key, description: String): String = {
+    val pemObject = new PemObject(description, key.getEncoded)
+    val stringWriter = new StringWriter()
+    val pemWriter: PemWriter = new PemWriter(stringWriter)
+    try {
+      pemWriter.writeObject(pemObject)
+    } finally {
+      pemWriter.close()
+    }
+    stringWriter.toString
+  }
+
+  def readFromDb(db: Database, appId: Int): PemObject = {
     db.withConnection { conn =>
       val statement = conn.prepareStatement("""
-          SELECT `keyFile` FROM `apps` WHERE app = ?
+          SELECT `key` FROM `apps` WHERE id = ?;
         """)
-      statement.setString(2, appName)
+      statement.setInt(1, appId)
       val res = statement.executeQuery()
       res.next()
-      val keyString = res.getString("keyFile")
-      val stringReader = new StringReader(keyString)
-      val pemReader: PemReader = new PemReader(stringReader)
-      try {
-        pemReader.readPemObject()
-      } finally {
-        pemReader.close()
-      }
+      val keyString = res.getString("key").replace("\\n", "\n")
+      readFromString(keyString)
+    }
+  }
+
+  def writeToDb(appId: Int, db: Database, key: Key, description: String): Unit = {
+    db.withConnection { conn =>
+      val keyString = writeToString(key, description)
+      val statement = conn.prepareStatement("""
+          UPDATE `apps` SET `key` = ? WHERE id = ?;
+        """)
+      statement.setString(1, keyString)
+      statement.setInt(2, appId)
+      statement.execute()
     }
   }
 

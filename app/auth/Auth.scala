@@ -20,21 +20,25 @@ class Auth @Inject()(db: Database) {
 
   /**
     * Given the name of an RSA public key file, return the PublicKey object.
-    * @param keyFile: the name of the file containing the public RSA key, including the .crt/.pem extension.
+    * @param keyPath: the name of the file containing the public RSA key, including the .crt/.pem extension.
     * @param path: the path to the directory containing the RSA public key certificates.
     */
-  private def getPublicKey(keyFile: String, path: String = "resources/rsa_keys"): PublicKey = {
+  private def getPublicKey(keyPath: String, path: String = "resources/rsa_keys"): PublicKey = {
     /* Try to find a certificate in *path* with extension ".cer" */
-    findInTree(path, "cer") find {_.getName == keyFile} map {
-      cert: File => readPublicKeyFromCertificate(cert.getPath)
+    findInTree(path, "cer") find {_.getName == keyPath} map { cert: File =>
+      readPublicKeyFromCertificate(cert.getPath)
     } getOrElse {
       /* Try to find a public key in *path* with extension ".pem" */
-      findInTree(path, "pem") find {_.getName == keyFile} map {
-        keyFile: File => readPublicKeyFromPemFile(keyFile.getPath)
+      findInTree(path, "pem") find {_.getName == keyPath} map { keyFile: File =>
+        readPublicKeyFromPemFile(keyFile.getPath)
       } getOrElse {
         throw new IllegalArgumentException("Could not find a suitable RSA public key in either .cer or .pem file.")
       }
     }
+  }
+
+  private def getPublicKeyFromDb(appId: Int): PublicKey = {
+    readPublicKeyFromDb(db, appId)
   }
 
   /**
@@ -59,19 +63,19 @@ class Auth @Inject()(db: Database) {
 
   /**
     * Search the database for an app with identifier *iss*.
-    * Return a couple (appId, keyFile).
+    * Return a couple (appId, key).
     * @param iss: the app name/identifier, as it is in the JWT under the "iss" claim.
     */
   private def appFromDatabase(iss: String): (Int, String) = {
     db.withConnection { conn =>
-      val statement = conn.prepareStatement("SELECT `id`,`keyFile` FROM `apps` WHERE `iss`=?;")
+      val statement = conn.prepareStatement("SELECT `id`,`key` FROM `apps` WHERE `iss`=?;")
       statement.setString(1, iss)
       val result = statement.executeQuery()
       var res: Option[(Int, String)] = None
       while (result.next()) {
         val appId = result.getInt("id")
-        val keyFile = result.getString("keyFile")
-        res = Some((appId, keyFile))
+        val key = result.getString("key")
+        res = Some((appId, key))
       }
       res getOrElse {
         throw new IllegalArgumentException(s"Could not find app '$iss' in database")
@@ -110,13 +114,13 @@ class Auth @Inject()(db: Database) {
       for {
         iss <- Try(issFromClaim(claim))
         username <- Try(userFromClaim(claim))
-        (appId, keyFile) <- Try(appFromDatabase(iss))
+        (appId, keyString) <- Try(appFromDatabase(iss))
         user <- Try(userFromDatabase(username, appId))
-        publicKey <- Try(getPublicKey(keyFile))
+        key: PublicKey <- Try(readPublicKeyFromString(keyString.replace("\\n","\n")))
       } yield {
         // Now validate the token with the public key
         // Raises an error if the validation fails
-        JwtJson.validate(jwt, publicKey, Seq(JwtAlgorithm.RS256))
+        JwtJson.validate(jwt, key, Seq(JwtAlgorithm.RS256))
         user
       }
     }

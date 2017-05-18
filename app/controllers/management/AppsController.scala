@@ -21,7 +21,7 @@ class AppsController @Inject()(db: Database) extends Controller {
   /**
     * Add an app to the database.
     * Expects a JSON body of the type
-    * ```{ "iss": "as in jwt claim", "keyFile": "/", "description": "" }```
+    * ```{ "iss": "as in jwt claim", "key": "/", "description": "" }```
     */
   def addApp() = AdminAction(parse.json) { implicit request =>
 
@@ -31,9 +31,9 @@ class AppsController @Inject()(db: Database) extends Controller {
       InternalServerError(s"Cannot insert app '${app.iss}' because it already exists")
     } else {
       db.withConnection { conn =>
-        val statement = conn.prepareStatement("INSERT INTO `apps`(`iss`,`keyFile`,`description`) VALUES (?,?,?) ;")
+        val statement = conn.prepareStatement("INSERT INTO `apps`(`iss`,`key`,`description`) VALUES (?,?,?) ;")
         statement.setString(1, app.iss)
-        statement.setString(2, app.keyFile)
+        statement.setString(2, app.key)
         statement.setString(3, app.description.getOrElse(""))
         statement.execute()
         Ok(s"Inserted app '${app.iss}'")

@@ -69,7 +69,7 @@ class AuthSpec extends PlaySpec with WithToken with WithDatabase with OneAppPerS
   "Auth routes" should {
 
     "return 401 and the error message if authorization failed" in {
-        val header = ("Authorization", "Bearer " + auth0Token.slice(0,auth0Token.length-1))
+        val header = ("Authorization", "Bearer " + auth0Token.slice(0, auth0Token.length-1))
         val response = route(app, FakeRequest(GET, "/bai/ttt").withHeaders(header)).get
         status(response) mustBe UNAUTHORIZED
         contentAsString(response) must startWith("Last unit does not have enough valid bits")

@@ -1,6 +1,5 @@
 package auth
 
-import java.io._
 import java.security._
 import java.security.interfaces.{RSAPrivateKey, RSAPublicKey}
 import java.security.spec.{PKCS8EncodedKeySpec, X509EncodedKeySpec}
@@ -18,41 +17,60 @@ object RSA {
 
   /******** PEM stuff *********/
 
-  def readPublicKeyFromDb(appName: String, db: Database, key: PublicKey): PublicKey = {
-    val pemObject: PemObject = PEMFile.readFromDb(db, appName)
+  private def _readPublicKey(pemObject: PemObject): PublicKey = {
     val factory: KeyFactory = KeyFactory.getInstance("RSA", "BC")
     val content: Array[Byte] = pemObject.getContent
     val pubKeySpec: X509EncodedKeySpec = new X509EncodedKeySpec(content)
     factory.generatePublic(pubKeySpec)
   }
 
-  def readPublicKeyFromPemFile(filename: String): PublicKey = {
-    val pemObject: PemObject = PEMFile.read(filename)
-    val factory: KeyFactory = KeyFactory.getInstance("RSA", "BC")
-    val content: Array[Byte] = pemObject.getContent
-    val pubKeySpec: X509EncodedKeySpec = new X509EncodedKeySpec(content)
-    factory.generatePublic(pubKeySpec)
-  }
-
-  def readPrivateKeyFromPemFile(path: String): PrivateKey = {
-    val pemObject: PemObject = PEMFile.read(path)
+  private def _readPrivateKey(pemObject: PemObject): PrivateKey = {
     val factory: KeyFactory = KeyFactory.getInstance("RSA", "BC")
     val content: Array[Byte] = pemObject.getContent
     val privKeySpec: PKCS8EncodedKeySpec = new PKCS8EncodedKeySpec(content)
     factory.generatePrivate(privKeySpec)
   }
 
+  /* Readers */
+
+  def readPublicKeyFromString(keyString: String): PublicKey = {
+    val pemObject: PemObject = PEMFile.readFromString(keyString)
+    _readPublicKey(pemObject)
+  }
+
+  def readPublicKeyFromDb(db: Database, appId: Int): PublicKey = {
+    val pemObject: PemObject = PEMFile.readFromDb(db, appId)
+    _readPublicKey(pemObject)
+  }
+
+  def readPublicKeyFromPemFile(filename: String): PublicKey = {
+    val pemObject: PemObject = PEMFile.readFromFile(filename)
+    _readPublicKey(pemObject)
+  }
+
+  def readPrivateKeyFromPemFile(path: String): PrivateKey = {
+    val pemObject: PemObject = PEMFile.readFromFile(path)
+    _readPrivateKey(pemObject)
+  }
+
+  /* Writers */
+
+  def writePublicKeyToString(key: PublicKey): String = {
+    PEMFile.writeToString(key, "RSA PUBLIC KEY")
+  }
+
+  def writePublicKeyToDb(db: Database, appId: Int, key: PublicKey): Unit = {
+    PEMFile.writeToDb(appId, db, key, "RSA PUBLIC KEY")
+  }
+
   def writePublicKeyToPemFile(key: PublicKey, path: String = "id_rsa.pub"): Unit = {
-    PEMFile.write(key, "RSA PUBLIC KEY", path)
+    PEMFile.writeToFile(key, "RSA PUBLIC KEY", path)
   }
 
   def writePrivateKeyToPemFile(key: PrivateKey, path: String = "id_rsa"): Unit = {
-    PEMFile.write(key, "RSA PRIVATE KEY", path)
+    PEMFile.writeToFile(key, "RSA PRIVATE KEY", path)
   }
 
-  def writePublicKeyToDb(appName: String, db: Database, key: PublicKey): Unit = {
-    PEMFile.writeToDb(appName, db, key, "RSA PUBLIC KEY")
-  }
 
   /******** CRT stuff *********/
 
