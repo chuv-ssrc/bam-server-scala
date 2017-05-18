@@ -42,6 +42,26 @@ object PEMFile {
         """)
       statement.setString(1, stringWriter.toString)
       statement.setString(2, appName)
+      statement.execute()
+    }
+  }
+
+  def readFromDb(db: Database, appName: String): PemObject = {
+    db.withConnection { conn =>
+      val statement = conn.prepareStatement("""
+          SELECT `keyFile` FROM `apps` WHERE app = ?
+        """)
+      statement.setString(2, appName)
+      val res = statement.executeQuery()
+      res.next()
+      val keyString = res.getString("keyFile")
+      val stringReader = new StringReader(keyString)
+      val pemReader: PemReader = new PemReader(stringReader)
+      try {
+        pemReader.readPemObject()
+      } finally {
+        pemReader.close()
+      }
     }
   }
 

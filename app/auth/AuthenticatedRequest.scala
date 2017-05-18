@@ -47,13 +47,13 @@ class AuthenticatedAction @Inject()(db: Database) extends ActionBuilder[Authenti
     val maybeJwt: Option[String] = jwtFromAuthHeader(request) orElse jwtFromUrlParam(request)
     maybeJwt match {
       case None =>
-        Logger.debug("No Authorization header")
+        // Logger.debug("No Authorization header")
         Future.successful(Unauthorized("No Authorization header"))
       case Some(jwt: String) =>
         val Auth = new Auth(db)
         Auth.validateToken(jwt, db) match {
           case Failure(err) =>
-            Logger.debug("Failed token validation: "+ err.getMessage)
+            // Logger.debug("Failed token validation: "+ err.getMessage)
             Future.successful(Unauthorized(err.getMessage))
           case Success(user: User) =>
             val (hasAccess, message) = authorize(user)

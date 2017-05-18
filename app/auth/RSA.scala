@@ -18,6 +18,14 @@ object RSA {
 
   /******** PEM stuff *********/
 
+  def readPublicKeyFromDb(appName: String, db: Database, key: PublicKey): PublicKey = {
+    val pemObject: PemObject = PEMFile.readFromDb(db, appName)
+    val factory: KeyFactory = KeyFactory.getInstance("RSA", "BC")
+    val content: Array[Byte] = pemObject.getContent
+    val pubKeySpec: X509EncodedKeySpec = new X509EncodedKeySpec(content)
+    factory.generatePublic(pubKeySpec)
+  }
+
   def readPublicKeyFromPemFile(filename: String): PublicKey = {
     val pemObject: PemObject = PEMFile.read(filename)
     val factory: KeyFactory = KeyFactory.getInstance("RSA", "BC")
@@ -34,10 +42,6 @@ object RSA {
     factory.generatePrivate(privKeySpec)
   }
 
-  def writePublicKeyToDb(appName: String, db: Database, key: PublicKey): Unit = {
-    PEMFile.writeToDb(appName, db, key, "RSA PUBLIC KEY")
-  }
-
   def writePublicKeyToPemFile(key: PublicKey, path: String = "id_rsa.pub"): Unit = {
     PEMFile.write(key, "RSA PUBLIC KEY", path)
   }
@@ -46,6 +50,9 @@ object RSA {
     PEMFile.write(key, "RSA PRIVATE KEY", path)
   }
 
+  def writePublicKeyToDb(appName: String, db: Database, key: PublicKey): Unit = {
+    PEMFile.writeToDb(appName, db, key, "RSA PUBLIC KEY")
+  }
 
   /******** CRT stuff *********/
 
@@ -53,7 +60,7 @@ object RSA {
     Certificate.read(filename).getPublicKey
   }
 
-  
+
   /***** Generate test keys *****/
 
   Security.addProvider(new BouncyCastleProvider())

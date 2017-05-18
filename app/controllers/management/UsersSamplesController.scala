@@ -45,7 +45,7 @@ class UsersSamplesController @Inject()(db: Database) extends Controller {
 
     verified match {
       case Failure(err) =>
-        Logger.debug(err.getMessage)
+        // Logger.debug(err.getMessage)
         InternalServerError(err.getMessage +". Nothing was inserted.")
       case Success(zipped) =>
         val counts: Seq[Int] = zipped.map(us => findUsersSamples(db, us._1, us._2))
@@ -94,7 +94,7 @@ class UsersSamplesController @Inject()(db: Database) extends Controller {
 
     verified match {
       case Failure(err) =>
-        Logger.debug(err.getMessage)
+        // Logger.debug(err.getMessage)
         InternalServerError(err.getMessage +". Nothing was deleted.")
       case Success(zipped) =>
         val counts: Seq[Int] = zipped.map(us => findUsersSamples(db, us._1, us._2))
