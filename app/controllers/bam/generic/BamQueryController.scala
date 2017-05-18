@@ -1,4 +1,4 @@
-package controllers.generic
+package controllers.bam.generic
 
 import java.nio.file.{Path, Paths}
 import javax.inject.Inject

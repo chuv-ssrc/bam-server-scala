@@ -3,7 +3,7 @@ package controllers.bam
 import javax.inject.{Inject, _}
 
 import auth.AuthenticatedAction
-import controllers.generic.BamQueryController
+import controllers.bam.generic.BamQueryController
 import htsjdk.samtools.{SAMRecord, SamReader, SamReaderFactory}
 import models.BamRequest
 import play.api.Configuration
@@ -42,7 +42,7 @@ class JsonController @Inject()(db: Database, config: Configuration) extends BamQ
   def bamPost(region: Option[String]) = AuthenticatedAction(parse.json) { implicit request =>
     parseBamRequestFromPost(request) match {
       case Failure(err: IllegalAccessException) =>
-        Unauthorized(err.getMessage)
+        Forbidden(err.getMessage)
       case Failure(err) =>
         //Logger.debug(err.getMessage)
         InternalServerError(err.getMessage)
@@ -54,7 +54,7 @@ class JsonController @Inject()(db: Database, config: Configuration) extends BamQ
   def bamGet(sample: String, token: Option[String], region: Option[String]) = AuthenticatedAction { implicit request =>
     sampleNameToBamRequest(sample, request.user) match {
       case Failure(err: IllegalAccessException) =>
-        Unauthorized(err.getMessage)
+        Forbidden(err.getMessage)
       case Failure(err) =>
         //Logger.debug(err.getMessage)
         InternalServerError(err.getMessage)

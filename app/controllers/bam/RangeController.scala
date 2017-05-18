@@ -3,7 +3,7 @@ package controllers.bam
 import javax.inject.{Inject, _}
 
 import auth.AuthenticatedAction
-import controllers.generic.BamQueryController
+import controllers.bam.generic.BamQueryController
 import models.BamRequest
 import play.api.Configuration
 import play.api.db.Database
@@ -29,7 +29,7 @@ class RangeController @Inject()(db: Database, config: Configuration) extends Bam
   def bamPost() = AuthenticatedAction(parse.json) { implicit request =>
     parseBamRequestFromPost(request) match {
       case Failure(err: IllegalAccessException) =>
-        Unauthorized(err.getMessage)
+        Forbidden(err.getMessage)
       case Failure(err) =>
         //Logger.debug(err.getMessage)
         InternalServerError(err.getMessage)
@@ -41,7 +41,7 @@ class RangeController @Inject()(db: Database, config: Configuration) extends Bam
   def bamGet(sample: String, token: Option[String], range: Option[String]) = AuthenticatedAction { implicit request =>
     sampleNameToBamRequest(sample, request.user) match {
       case Failure(err: IllegalAccessException) =>
-        Unauthorized(err.getMessage)
+        Forbidden(err.getMessage)
       case Failure(err) =>
         //Logger.debug(err.getMessage)
         InternalServerError(err.getMessage)
