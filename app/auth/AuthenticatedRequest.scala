@@ -39,8 +39,8 @@ class AuthenticatedAction @Inject()(db: Database) extends ActionBuilder[Authenti
     request.getQueryString("token")
   }
 
-  def authorize(user: User): Boolean = {
-    user.isActive
+  def authorize(user: User): (Boolean, String) = {
+    (user.isActive, "This user requires validation by admin")
   }
 
   def invokeBlock[A](request: Request[A], block: AuthenticatedRequest[A] => Future[Result]) = {
@@ -56,8 +56,9 @@ class AuthenticatedAction @Inject()(db: Database) extends ActionBuilder[Authenti
             Logger.debug("Failed token validation: "+ err.getMessage)
             Future.successful(Unauthorized(err.getMessage))
           case Success(user: User) =>
-            if (! authorize(user)) {
-              Future.successful(Forbidden("This user requires validation by admin"))
+            val (hasAccess, message) = authorize(user)
+            if (! hasAccess) {
+              Future.successful(Forbidden(message))
             } else {
               block(new AuthenticatedRequest(user, request))
             }
@@ -70,8 +71,8 @@ class AuthenticatedAction @Inject()(db: Database) extends ActionBuilder[Authenti
 @Singleton
 class AdminAction @Inject()(db: Database) extends AuthenticatedAction(db) {
 
-  override def authorize(user: User): Boolean = {
-    user.isActive && user.isAdmin
+  override def authorize(user: User): (Boolean, String) = {
+    (user.isActive && user.isAdmin, "This action requires admin rights")
   }
 
 }

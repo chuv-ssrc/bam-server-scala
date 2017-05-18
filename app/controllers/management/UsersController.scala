@@ -25,13 +25,13 @@ class UsersController @Inject()(db: Database) extends Controller {
     */
   def addUsers() = AdminAction(parse.json) { implicit request =>
 
-    val appId = request.user.appId
-    val users = usersFromRequest
+    val appId: Int = request.user.appId
+    val users: Seq[User] = usersFromRequest
     // they all get an appId from the admin requesting this
 
     val userCounts: Seq[Int] = users.map(u => findUserByUsername(db, u.username, appId))
     if (userCounts.exists(_ > 0)) {
-      val dupUser = users(userCounts.find(_ > 0).get)
+      val dupUser = users(userCounts.indexWhere(_ > 0))
       InternalServerError(s"Cannot insert user '${dupUser.username}' because it already exists. Nothing was inserted.")
     } else {
       db.withConnection { conn =>

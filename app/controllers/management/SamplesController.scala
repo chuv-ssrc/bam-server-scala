@@ -30,7 +30,7 @@ class SamplesController @Inject()(db: Database) extends Controller {
 
     val sampleCounts: Seq[Int] = samples.map(s => findSampleBySampleName(db, s.name, appId))
     if (sampleCounts.exists(_ > 0)) {
-      val dupSample = samples(sampleCounts.find(_ > 0).get)
+      val dupSample = samples(sampleCounts.indexWhere(_ > 0))
       InternalServerError(s"Cannot insert sample '${dupSample.name}' because it already exists. Nothing was inserted.")
     } else {
       db.withConnection { conn =>
