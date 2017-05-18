@@ -1,12 +1,13 @@
 package auth
 
-import java.io.{FileInputStream, FileOutputStream, InputStreamReader, OutputStreamWriter}
-import java.security.{Security, KeyPairGenerator, KeyPair, PublicKey, PrivateKey, Key, KeyFactory}
+import java.io._
+import java.security._
 import java.security.interfaces.{RSAPrivateKey, RSAPublicKey}
 import java.security.spec.{PKCS8EncodedKeySpec, X509EncodedKeySpec}
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import org.bouncycastle.util.io.pem.{PemObject, PemReader, PemWriter}
+import org.bouncycastle.util.io.pem.PemObject
+import play.api.db.Database
 
 // Ref:
 // https://www.txedo.com/blog/java-generate-rsa-keys-write-pem-file/
@@ -14,26 +15,6 @@ import org.bouncycastle.util.io.pem.{PemObject, PemReader, PemWriter}
 // http://stackoverflow.com/questions/6358555/obtaining-public-key-from-certificate
 
 object RSA {
-
-  Security.addProvider(new BouncyCastleProvider())
-  val generator: KeyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC")
-
-  private def generateRSAKeyPair(keySize: Int): KeyPair = {
-    generator.initialize(keySize)
-    generator.generateKeyPair()
-  }
-
-  class RSAPair(val keySize: Int = 1024) {
-    val keyPair: KeyPair = generateRSAKeyPair(keySize)
-    val privateKey: RSAPrivateKey = keyPair.getPrivate.asInstanceOf[RSAPrivateKey]
-    val publicKey: PublicKey = keyPair.getPublic.asInstanceOf[RSAPublicKey]
-  }
-
-  def writetestSample1Pair(keySize: Int = 1024, path: String = "resources/rsa_keys/test"): Unit = {
-    val keyPair = new RSAPair(keySize)
-    writePublicKeyToPemFile(keyPair.publicKey, path +"/id_rsa.pub")
-    writePrivateKeyToPemFile(keyPair.privateKey, path +"/id_rsa")
-  }
 
   /******** PEM stuff *********/
 
@@ -53,6 +34,10 @@ object RSA {
     factory.generatePrivate(privKeySpec)
   }
 
+  def writePublicKeyToDb(appName: String, db: Database, key: PublicKey): Unit = {
+    PEMFile.writeToDb(appName, db, key, "RSA PUBLIC KEY")
+  }
+
   def writePublicKeyToPemFile(key: PublicKey, path: String = "id_rsa.pub"): Unit = {
     PEMFile.write(key, "RSA PUBLIC KEY", path)
   }
@@ -61,28 +46,6 @@ object RSA {
     PEMFile.write(key, "RSA PRIVATE KEY", path)
   }
 
-  private object PEMFile {
-
-    def write(key: Key, description: String, filename: String): Unit = {
-      val pemObject = new PemObject(description, key.getEncoded)
-      val pemWriter: PemWriter = new PemWriter(new OutputStreamWriter(new FileOutputStream(filename)))
-      try {
-        pemWriter.writeObject(pemObject)
-      } finally {
-        pemWriter.close()
-      }
-    }
-
-    def read(path: String): PemObject = {
-      val pemReader: PemReader = new PemReader(new InputStreamReader(new FileInputStream(path)))
-      try {
-        pemReader.readPemObject()
-      } finally {
-        pemReader.close()
-      }
-    }
-
-  }
 
   /******** CRT stuff *********/
 
@@ -90,16 +53,27 @@ object RSA {
     Certificate.read(filename).getPublicKey
   }
 
-  private object Certificate {
+  
+  /***** Generate test keys *****/
 
-    import java.security.cert.{Certificate, CertificateFactory}
+  Security.addProvider(new BouncyCastleProvider())
+  val generator: KeyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC")
 
-    def read(filename: String): Certificate = {
-      val fin = new FileInputStream(filename)
-      val f = CertificateFactory.getInstance("X.509")
-      f.generateCertificate(fin)
-    }
+  private def generateRSAKeyPair(keySize: Int): KeyPair = {
+    generator.initialize(keySize)
+    generator.generateKeyPair()
+  }
 
+  private class RSAPair(val keySize: Int = 1024) {
+    val keyPair: KeyPair = generateRSAKeyPair(keySize)
+    val privateKey: RSAPrivateKey = keyPair.getPrivate.asInstanceOf[RSAPrivateKey]
+    val publicKey: PublicKey = keyPair.getPublic.asInstanceOf[RSAPublicKey]
+  }
+
+  def writetestSample1Pair(keySize: Int = 1024, path: String = "resources/rsa_keys/test"): Unit = {
+    val keyPair = new RSAPair(keySize)
+    writePublicKeyToPemFile(keyPair.publicKey, path +"/id_rsa.pub")
+    writePrivateKeyToPemFile(keyPair.privateKey, path +"/id_rsa")
   }
 
 }
