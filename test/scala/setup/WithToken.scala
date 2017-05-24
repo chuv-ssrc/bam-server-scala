@@ -24,7 +24,7 @@ trait WithToken {
   // name = admin@test.com (password = 'test'), can access 'sample1' and 'sample2' with auth0PublicKey
   val auth0AdminToken = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik1UQTFNRGhHTUVRMVJUUXdOekJGTmpJME9FUkdPRFExUVRneE1rUTBNa0l5TkVWRU56QkROQSJ9.eyJuYW1lIjoiYWRtaW5AdGVzdC5jb20iLCJlbWFpbCI6ImFkbWluQHRlc3QuY29tIiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJuaWNrbmFtZSI6ImFkbWluIiwidXNlcl9pZCI6ImF1dGgwfDU5MWM1OTVkMDNjMDYyMDQyYjVlZDVkMCIsImlzcyI6Imh0dHBzOi8vamRlbGFmb24uZXUuYXV0aDAuY29tLyIsInN1YiI6ImF1dGgwfDU5MWM1OTVkMDNjMDYyMDQyYjVlZDVkMCIsImF1ZCI6Ikc0YkZXbnBhdWxSbEhTY3l6em54TlplUGpOeFpHMjh5IiwiZXhwIjozMTQ5NTAzMDUxMCwiaWF0IjoxNDk1MDMwNTEwfQ.pcu6AdxJKZh7V-YJHQaU_yPjKrrWmp_mOnKjuenU-wXJCjPqrpsXWeLg-YEFp_Trpd1TIb2DvbfOzxubzSpePqn4sMlojwTG8R50e1GGGG7M-omPWZtUCrc-RwHdK2OUp204qs0yRMJnKNkuZsq0Shpis3CwMLfdG1p8xo8NvavgZI5SiS7qeHwM7rD1Y7tjsqZ27DBBovkyiEUVnFnG7C0WS8IuBfEIVxLayXFIakqNcG5b4437mAmeFgt1Jj1m7XVaVuq4k8VW0JVrc0hWt-ujAeFLnbLk7s5Qgx7ky9z7xb2HdmwucTsa2fyhw30aOJirBrs234VVvw9r4BHEqA"
   // name = test@test.com (password = 'test'), from app 2 sharing the same secret:
-  private val hmacClaim = Json.obj("iss" -> "testapp2", "name" -> "test@test.com")
+  private val hmacClaim = Json.obj("iss" -> "testapp-hmac", "name" -> "test@test.com")
   val hmacToken = JwtJson.encode(hmacClaim, "secretHMACkey", JwtAlgorithm.HS256)
 
   // Respective HTTP headers

@@ -48,15 +48,16 @@ INSERT INTO `apps` VALUES
 'RS256', 'Using a public certificate in .cer format', 1),
 (2, 'testapp', '-----BEGIN RSA PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAK7ttYaE/1ldsb0OJQDQhhDWqwuFWIyt\nxgYIJH1HYA4UpA/Nm24fERIA1xi2Pomep6VTnQ/ThFP5hn2NyITwCIsCAwEAAQ==\n-----END RSA PUBLIC KEY-----',
 'RS256', 'Using a public key in .pem format', 1),
-(3, 'testapp2', 'secretHMACkey',
-'HS256', 'Using a shared secret key', 1)
+(3, 'testapp-hmac', 'secretHMACkey', 'HS256', 'Using a shared secret key', 1),
+(4, 'wrong-algorithm-app', '?', '?', 'Using an unknown encryption scheme', 1)
 ;
 
 INSERT INTO `users`(`id`,`app_id`,`username`,`isActive`,`isAdmin`) VALUES
 (1, 1, 'admin@test.com', 1, 1),
 (2, 1, 'test@test.com', 1, 0),
 (3, 2, 'test@test.com', 1, 0),
-(4, 3, 'test@test.com', 1, 0)
+(4, 3, 'test@test.com', 1, 0),
+(5, 4, 'test@test.com', 1, 0)
 ;
 
 INSERT INTO `samples`(`id`,`name`,`filename`,`isActive`) VALUES
