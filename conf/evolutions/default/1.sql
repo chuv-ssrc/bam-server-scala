@@ -51,7 +51,9 @@ INSERT INTO `apps` VALUES
 
 INSERT INTO `users`(`id`,`app_id`,`username`,`isActive`,`isAdmin`) VALUES
 (1, 1, 'test@test.com', 1, 0),
-(2, 1, 'admin@test.com', 1, 1)
+(2, 1, 'admin@test.com', 1, 1),
+(3, 2, 'test@test.com', 1, 0),
+(4, 2, 'admin@test.com', 1, 1)
 ;
 
 INSERT INTO `samples`(`id`,`name`,`filename`,`isActive`) VALUES
