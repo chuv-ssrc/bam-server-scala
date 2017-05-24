@@ -46,7 +46,7 @@ object PEMFile {
     } finally {
       pemWriter.close()
     }
-    stringWriter.toString
+    stringWriter.toString.trim
   }
 
   def readFromDb(db: Database, appId: Int): PemObject = {

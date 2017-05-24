@@ -60,4 +60,13 @@ class RSASpec extends PlaySpec with OneAppPerSuite with WithDatabase {
     writePublicKeyToDb(db, 1, auth0PublicKey)
   }
 
+  "Write a public key to database and get it back as it was before" in {
+    val keyString = "-----BEGIN RSA PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAK7ttYaE/1ldsb0OJQDQhhDWqwuFWIyt\nxgYIJH1HYA4UpA/Nm24fERIA1xi2Pomep6VTnQ/ThFP5hn2NyITwCIsCAwEAAQ==\n-----END RSA PUBLIC KEY-----"
+    val publicKey: PublicKey = readPublicKeyFromString(keyString)
+    writePublicKeyToDb(db, 1, publicKey)
+    val publicKey2: PublicKey = readPublicKeyFromDb(db, appId = 1)
+    val keyString2: String = writePublicKeyToString(publicKey2)
+    keyString2 must equal(keyString)
+  }
+
 }
