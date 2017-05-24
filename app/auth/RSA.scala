@@ -13,6 +13,10 @@ import play.api.db.Database
 // https://www.txedo.com/blog/java-read-rsa-keys-pem-file/
 // http://stackoverflow.com/questions/6358555/obtaining-public-key-from-certificate
 
+
+/**
+  * Utility functions to deal with RSA private key-public key encryption protocol.
+  */
 object RSA {
 
   /******** PEM stuff *********/

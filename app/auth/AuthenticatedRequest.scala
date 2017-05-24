@@ -8,7 +8,7 @@ import play.api.mvc._
 import play.api.http.HeaderNames._
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Success}
 import models.User
 import play.api.Logger
 import play.api.db.Database
@@ -51,7 +51,7 @@ class AuthenticatedAction @Inject()(db: Database) extends ActionBuilder[Authenti
         Future.successful(Unauthorized("No Authorization header"))
       case Some(jwt: String) =>
         val Auth = new Auth(db)
-        Auth.validateToken(jwt, db) match {
+        Auth.validate(jwt, db) match {
           case Failure(err) =>
             // Logger.debug("Failed token validation: "+ err.getMessage)
             Future.successful(Unauthorized(err.getMessage))

@@ -18,6 +18,7 @@ import play.api.db.Database
 @Singleton
 class Auth @Inject()(db: Database) {
 
+  /*
   /**
     * Given the name of an RSA public key file, return the PublicKey object.
     * @param keyPath: the name of the file containing the public RSA key, including the .crt/.pem extension.
@@ -40,6 +41,7 @@ class Auth @Inject()(db: Database) {
   private def getPublicKeyFromDb(appId: Int): PublicKey = {
     readPublicKeyFromDb(db, appId)
   }
+  */
 
   /**
     * Read the "iss" (issuer) claim from JWT and return its value (the app name).
@@ -66,16 +68,17 @@ class Auth @Inject()(db: Database) {
     * Return a couple (appId, key).
     * @param iss: the app name/identifier, as it is in the JWT under the "iss" claim.
     */
-  private def appFromDatabase(iss: String): (Int, String) = {
+  private def appFromDatabase(iss: String): (Int, String, String) = {
     db.withConnection { conn =>
-      val statement = conn.prepareStatement("SELECT `id`,`key` FROM `apps` WHERE `iss`=?;")
+      val statement = conn.prepareStatement("SELECT `id`,`key`,`algorithm` FROM `apps` WHERE `iss`=?;")
       statement.setString(1, iss)
       val result = statement.executeQuery()
-      var res: Option[(Int, String)] = None
+      var res: Option[(Int, String, String)] = None
       while (result.next()) {
         val appId = result.getInt("id")
         val key = result.getString("key")
-        res = Some((appId, key))
+        val algorithm = result.getString("algorithm")
+        res = Some((appId, key, algorithm))
       }
       res getOrElse {
         throw new IllegalArgumentException(s"Could not find app '$iss' in database")
@@ -105,22 +108,42 @@ class Auth @Inject()(db: Database) {
     }
   }
 
+  def validateToken(jwt: String, keyString: String, algorithm: String): Try[Unit] = {
+    if (algorithm.startsWith("RS")) {
+      Try(readPublicKeyFromString(keyString.replace("\\n","\n"))).map { key =>
+        algorithm match {
+          case "RS256" => JwtJson.validate(jwt, key, Seq(JwtAlgorithm.RS256))
+          case "RS384" => JwtJson.validate(jwt, key, Seq(JwtAlgorithm.RS256))
+          case "RS512" => JwtJson.validate(jwt, key, Seq(JwtAlgorithm.RS256))
+          case _ => throw new IllegalArgumentException("Only algorithms RS256,RS384,RS512,HS256,HS384,HS512 are supported.")
+        }
+      }
+    } else {
+      Try(
+        algorithm match {
+          case "HS256" => JwtJson.validate(jwt, keyString, Seq(JwtAlgorithm.HS256))
+          case "HS384" => JwtJson.validate(jwt, keyString, Seq(JwtAlgorithm.HS384))
+          case "HS512" => JwtJson.validate(jwt, keyString, Seq(JwtAlgorithm.HS512))
+          case _ => throw new IllegalArgumentException("Only algorithms RS256,RS384,RS512,HS256,HS384,HS512 are supported.")
+        }
+      )
+    }
+  }
+
   /**
     * First get the claim without verification, to read the app name from the "iss" claim
     * and read the corresponding public key, then validate the token.
+    * Return a Success only if all these steps are successful.
     */
-  def validateToken(jwt: String, db: Database): Try[User] = {
+  def validate(jwt: String, db: Database): Try[User] = {
     JwtJson.decodeJson(jwt, JwtOptions(signature = false)) flatMap { claim =>
       for {
         iss <- Try(issFromClaim(claim))
         username <- Try(userFromClaim(claim))
-        (appId, keyString) <- Try(appFromDatabase(iss))
+        (appId, keyString, algorithm) <- Try(appFromDatabase(iss))
         user <- Try(userFromDatabase(username, appId))
-        key: PublicKey <- Try(readPublicKeyFromString(keyString.replace("\\n","\n")))
+        _ <- validateToken(jwt, keyString, algorithm)
       } yield {
-        // Now validate the token with the public key
-        // Raises an error if the validation fails
-        JwtJson.validate(jwt, key, Seq(JwtAlgorithm.RS256))
         user
       }
     }

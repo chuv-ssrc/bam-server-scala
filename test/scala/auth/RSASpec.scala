@@ -6,6 +6,7 @@ import java.security._
 import auth.RSA._
 
 import scala.setup.WithDatabase
+import scala.util.{Failure, Try}
 
 
 
@@ -25,7 +26,10 @@ class RSASpec extends PlaySpec with OneAppPerSuite with WithDatabase {
     val auth0PublicKey: PublicKey = readPublicKeyFromCertificate("resources/rsa_keys/auth0.cer")
   }
 
-  //----- Storing the public key in db: ----//
+  "Fail to read a public key in the wrong format" in {
+    val read = Try(readPublicKeyFromString("aaaa"))
+    read mustBe a[Failure[_]]
+  }
 
   "Read a public key from a manual one-line string with returns" in {
     val keyString = "-----BEGIN RSA PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAK7ttYaE/1ldsb0OJQDQhhDWqwuFWIyt\nxgYIJH1HYA4UpA/Nm24fERIA1xi2Pomep6VTnQ/ThFP5hn2NyITwCIsCAwEAAQ==\n-----END RSA PUBLIC KEY-----"
