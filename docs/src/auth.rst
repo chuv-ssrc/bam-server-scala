@@ -3,10 +3,15 @@ Authorization
 =============
 
 To ensure that only registered users have access only to the data that belongs to them,
-all requests must include a Json Web Token (JWT) in their "Authorization" header.
-It is a signed Bearer token which payload includes at least
+all requests must include a Json Web Token (JWT) in their "Authorization" header. For example:
 
-* The user identifer under claim `"name"` (configurable)
+.. code:: bash
+
+    curl -i -H "Authorization: Bearer xxxx.yyyy.zzzz" http://localhost:9000/bai/SAMPLE1
+
+The token payload must include at least (see JWT_example_):
+
+* The user identifer under claim `"name"` (configurable);
 * The app identifier under claim `"iss"`.
 
 The authorization process works as follows:
@@ -77,12 +82,14 @@ Copy one of these into the `key` column of the `apps` table.
 .. note::
 
   Database TEXT fields can only hold one line of text.
-  You must replace all line returns by **`\\n`**, for instance:
+  You must replace all line returns by ``\n``, for instance:
 
   .. code:: bash
 
       -----BEGIN RSA PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAK7ttYaE/1ldsb0OJQDQhhDWqwuFWIyt\nxgYIJH1HYA4UpA/Nm24fERIA1xi2Pomep6VTnQ/ThFP5hn2NyITwCIsCAwEAAQ==\n-----END RSA PUBLIC KEY-----
 
+
+.. _JWT_example:
 
 JWT example
 -----------
@@ -118,3 +125,23 @@ JWT example
     <Base64(Header)>.<Base64(Payload)>.<Base64(Signature)>
 
 For more details on JWTs, see `jwt.io <jwt.io>`_.
+
+
+Supported algorithms
+--------------------
+
+The values in the first column are the ones that can be put in `apps.algorithm`.
+
+.. table::
+
+   ========= ==============================
+   algorithm description
+   ========= ==============================
+   "HS256" 	 HMAC using SHA-256 algorithm
+   "HS384"	 HMAC using SHA-384 algorithm
+   "HS512" 	 HMAC using SHA-512 algorithm
+   "RS256" 	 RSASSA using SHA-256 algorithm
+   "RS384" 	 RSASSA using SHA-384 algorithm
+   "S512" 	 RSASSA using SHA-512 algorithm
+   ========= ==============================
+
