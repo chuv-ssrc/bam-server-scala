@@ -13,6 +13,13 @@ Contents
    :maxdepth: 2
 
    src/about
+   src/method
+   src/installation
+   src/bam_api
+   src/auth
+   src/schema
+   src/management_api
+   src/examples
 
 
 Indices and tables

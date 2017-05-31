@@ -10,6 +10,7 @@ target
 /RUNNING_PID
 /backup
 /private_scripts
+/docs/_build
 
 # Scala worksheet
 *.sc
