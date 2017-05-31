@@ -1,7 +1,5 @@
-varapp-docs
-===========
-
-Documentation to Varapp.
+Genrating the documentation
+===========================
 
 It is ReStructuredText (.rst) format.
 Use Sphinx (>=1.4) for Python to generate HTML::
