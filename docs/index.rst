@@ -10,7 +10,7 @@ Contents
 ''''''''
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    src/about
    src/method

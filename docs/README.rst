@@ -1,5 +1,7 @@
-Genrating the documentation
-===========================
+
+
+Generating the documentation
+============================
 
 It is ReStructuredText (.rst) format.
 Use Sphinx (>=1.4) for Python to generate HTML::

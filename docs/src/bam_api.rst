@@ -7,7 +7,7 @@ Bam-server can return portions of BAM files using 3 different strategies:
 
 1. `Extracting a range of bytes`_;
 2. `Using samtools (if available)`_;
-3. `Using the Picard-tools library`_.
+3. `Using Picard-tools/htsjdk`_.
 
 
 Authorization
@@ -90,7 +90,7 @@ Uses samtools (if available) to extract the region (``samtools view -hb <bam> <r
 Return the content as binary.
 
 
-.. _Using the Picard-tools library:
+.. _Using Picard-tools/htsjdk:
 
 Reads in JSON format
 ....................
@@ -101,7 +101,7 @@ Reads in JSON format
     GET /bam/json/:sample?region=<region>
 
 Returns the reads for the given region in JSON format,
-using the [htsjdk](http://samtools.github.io/htsjdk/) library.
+using the `htsjdk <http://samtools.github.io/htsjdk/>`_ library.
 The fields correspond to the SAM file columns:
 
 .. code:: bash
