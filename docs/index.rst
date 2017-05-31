@@ -6,11 +6,13 @@
 Welcome to bam-server's documentation!
 ======================================
 
-Contents:
+Contents
+''''''''
 
 .. toctree::
    :maxdepth: 2
 
+   src/about
 
 
 Indices and tables
