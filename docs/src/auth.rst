@@ -33,7 +33,7 @@ The HMAC protocol uses a shared secret key to both encrypt and verify the encryp
 In our application, the authorization server encrypts the JWT signature with the secret key.
 
 We copy the secret key in the `key` column of the `apps` table,
-along with the encryption algorithm in column `algorithm`.
+along with the encryption algorithm in column `algorithm` (see algorithms_).
 Bam-server can then verify token signatures using the secret key.
 
 .. attention::
@@ -54,7 +54,7 @@ In our application, the authorization server encrypts the JWT signature with its
 and provides the public key.
 
 We copy the public key to the bam-server database, in the `key` column of the `apps` table,
-along with the encryption algorithm in column `algorithm`.
+along with the encryption algorithm in column `algorithm` (see algorithms_).
 Bam-server can then verify token signatures using the public key.
 
 RSA keys are not strings, but can be stored and shared as text in these common formats:
@@ -126,6 +126,8 @@ JWT example
 
 For more details on JWTs, see `jwt.io <jwt.io>`_.
 
+
+.. _algorithms:
 
 Supported algorithms
 --------------------

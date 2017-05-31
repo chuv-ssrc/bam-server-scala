@@ -5,9 +5,9 @@ BAM query API
 
 Bam-server can return portions of BAM files using 3 different strategies:
 
-1. Extracting a range of bytes;
-2. Using samtools if available;
-3. Using the Picard-tools library.
+1. `Extracting a range of bytes`_;
+2. `Using samtools (if available)`_;
+3. `Using the Picard-tools library`_.
 
 
 Authorization
@@ -58,6 +58,9 @@ BAM index
 
 Returns the content of the index (.bai) for that BAM file.
 
+
+.. _Extracting a range of bytes:
+
 Range query
 ...........
 
@@ -73,6 +76,8 @@ The bytes range can also be passed as an argument to the request (`?range=<range
 Return the content as binary.
 
 
+.. _Using samtools (if available):
+
 Using samtools
 ..............
 
@@ -84,6 +89,8 @@ Using samtools
 Uses samtools (if available) to extract the region (``samtools view -hb <bam> <region>``).
 Return the content as binary.
 
+
+.. _Using the Picard-tools library:
 
 Reads in JSON format
 ....................
