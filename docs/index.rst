@@ -6,6 +6,10 @@
 Welcome to bam-server's documentation!
 ======================================
 
+.. figure:: https://travis-ci.org/jdelafon/bam-server-scala.svg
+   :alt: Travis build status
+
+
 Contents
 ''''''''
 
