@@ -1,6 +1,6 @@
 
-Authorization
-=============
+Authorization protocol
+======================
 
 To ensure that only registered users have access only to the data that belongs to them,
 all requests must include a Json Web Token (JWT) in their "Authorization" header. For example:

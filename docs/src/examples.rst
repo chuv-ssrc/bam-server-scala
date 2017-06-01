@@ -51,10 +51,19 @@ IGV.js is able to parse the index to find which bytes range to ask for in a RANG
     instead of having to pass the token in the URL (which can be unsafe with reusable tokens).
 
 
+Result:
+
+.. figure:: /images/demo.png
+   :width: 100%
+   :alt: Demo interface using bam-server to display read alignments
+
+   Demo interface using bam-server to display read alignments.
+
+
 Example of using Auth0 as authorization server
 ----------------------------------------------
 
-[Auth0](https://manage.auth0.com) is a commercial solution that provides an easy-to-manage authorization server
+`Auth0 <https://manage.auth0.com>`_ is a commercial solution that provides an easy-to-manage authorization server
 (for free if you have few users and minimal requirements) implementing the
 `OAuth2 <https://oauth.net/2/>`_ protocol.
 Its only role is to identify users of the client app and return signed tokens.
