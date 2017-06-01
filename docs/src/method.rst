@@ -19,5 +19,15 @@ Bam-server in itself represents only the resource server in the authorization wo
    :width: 100%
    :alt: Typical authorization workflow
 
-It is up to the auth server to define valid users. The local database of bam-server
-only maps user identifiers as returned by the auth server, to sample identifiers and the corresponding BAM files.
+Notes:
+
+* It is up to the auth server to define valid users. The local database of bam-server
+  only maps user identifiers as returned by the auth server, to sample identifiers and the corresponding BAM files.
+
+* Client apps can access bam-server remotely, but for the moment,
+  bam-server itself can only access files that are located on the same machine as itself.
+  One cannot provide a URL as a file path in the database.
+
+
+
+

@@ -9,6 +9,7 @@ remotely and securely, according to user permissions. In particular, it
 * Never moves or copies the original file, but sends only the requested bits through HTTP;
 * Is compatible with any authorization server that returns `JSON Web Tokens <https://jwt.io/introduction/>`_
   (*does not work with cookies*).
+* Integrates very well with IGV.js.
 
 A typical application is the display of local read alignments for variant calling quality control,
 where the subject is human and thus the data must be kept private.
