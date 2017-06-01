@@ -15,7 +15,6 @@ Contents
    src/about
    src/method
    src/installation
-   src/conf
    src/bam_api
    src/auth
    src/schema
