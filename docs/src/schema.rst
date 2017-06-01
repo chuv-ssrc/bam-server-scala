@@ -56,3 +56,34 @@ Here is the complete db schema:
 
 Fields description
 ------------------
+
+
+Some test data
+--------------
+
+For convenience, this generates 3 apps with different signature algorithms,
+2 users (1 admin), 2 samples, and attributes samples to the users.
+
+.. code:: sql
+
+    INSERT INTO `apps` VALUES
+    (1, 'https://jdelafon.eu.auth0.com/',
+    '-----BEGIN RSA PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAtWWKxPv9vsWdRR/hcmJF\nsQjjUrMs/OsVstyNJXwmWuhl3lNIZwwEDoJbnE9IKPyizyNwbnB9FmJnClCboUeP\nbkuIrDM63+S+PtX/SQ9YI5yDxz+88dRYT86WP23wcWMO3txV2GAu62RVGSl48ZJP\nSyu94NBIiZOO5oDJpWDInhZphiMQ3u/rEwlVxVMt0CTTInfl4iX0sCtymD2y6M38\nVrQwHOzSddFrbI58t4Rfal4SttwdmXONRnj7mrgl5G6v7IHEa/HOrlT1rSLOMBKz\nOfmZy+bdlt5zrx3Adfzgn1BC6DGlG3Y9QYMOPpXjbzRO3rv9Fl5bRJyn5Ih82Cey\ndQIDAQAB\n-----END RSA PUBLIC KEY-----',
+    'RS256', 'Using a public certificate in .cer format', 1),
+    (2, 'testapp', '-----BEGIN RSA PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAK7ttYaE/1ldsb0OJQDQhhDWqwuFWIyt\nxgYIJH1HYA4UpA/Nm24fERIA1xi2Pomep6VTnQ/ThFP5hn2NyITwCIsCAwEAAQ==\n-----END RSA PUBLIC KEY-----',
+    'RS256', 'Using a public key in .pem format', 1),
+    (3, 'testapp-hmac', 'secretHMACkey', 'HS256', 'Using a shared secret key', 1);
+
+    INSERT INTO `users`(`id`,`app_id`,`username`,`isActive`,`isAdmin`) VALUES
+    (1, 1, 'admin@test.com', 1, 1),
+    (2, 1, 'test@test.com', 1, 0),
+    (3, 2, 'test@test.com', 1, 0),
+    (4, 3, 'test@test.com', 1, 0);
+
+    INSERT INTO `samples`(`id`,`name`,`filename`,`isActive`) VALUES
+    (1, 'sample1', 'test1.bam', 1),
+    (2, 'sample2', 'test2.bam', 1);
+
+    INSERT INTO `users_samples`(`user_id`,`sample_id`) VALUES
+    (1, 1),(1, 2),(2, 1);
+

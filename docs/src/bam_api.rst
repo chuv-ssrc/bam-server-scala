@@ -5,9 +5,9 @@ BAM query API
 
 Bam-server can return portions of BAM files using 3 different strategies:
 
-1. `Extracting a range of bytes`_;
-2. `Using samtools (if available)`_;
-3. `Using Picard-tools/htsjdk`_.
+1. `Extracting a range of bytes`_ (IGV.js uses that);
+2. `Using samtools`_ (if available);
+3. `Using Picard-tools/htsjdk`_ to return reads in JSON format.
 
 
 Authorization
@@ -76,7 +76,7 @@ The bytes range can also be passed as an argument to the request (`?range=<range
 Return the content as binary.
 
 
-.. _Using samtools (if available):
+.. _Using samtools:
 
 Using samtools
 ..............
