@@ -11,7 +11,7 @@ The goal is to provide
 
 1. A way to query remote BAM files securely, according to user permissions;
 2. An example widget that displays read alignments the user can access to;
-3. Compatibility with any OAuth2-based authorization server.
+3. Compatibility with any OAuth2, token-based authorization server.
 
 Bam-server is written in Scala using the Play framework, and in itself represents only
 the resource server in the OAuth2 diagram. It communicates with a local database
@@ -226,97 +226,3 @@ The service becomes available at ``https://<host>/bamserver/``
 N.B. To use another proxy than Apache, see
 [Play HTTPServer docs](https://www.playframework.com/documentation/2.5.x/HTTPServer).
 
-
-Example of usage with Auth0
-===========================
-
-[Auth0](https://manage.auth0.com) is a commercial solution that provides an easy-to-manage authorization server
-(for free if you have few users and usual requirements). 
-Its only role is to identify users of the client app and return valid tokens. 
-
-1. First time setup 
-
-    1. Create an Auth0 account
-
-    2. Create a new client app, say "bam-server". It is given a Client ID and a Client secret.
-    
-    3. Go to "Clients > Show advanced settings". In the "OAuth" tab, choose "RS256". This changes
-       the encryption protocol from the default HMAC (symmetric, shared secret) 
-       to RSA (asymmetric private/public - more secure).
-       
-    4. Still in the advanced settings, copy the public certificate from "Certificates > Signing Certificate",
-       or download it in CER/PEM format.
-    
-    5. Copy the certificate to "test.cer" in the `resources/rsa_keys` directory. 
-       So now you have a file `resources/rsa_keys/test.cer`. 
-
-2. Obtain a token (for testing; the client app is out of this scope)
-
-    1. Let's say your client web app is served as localhost:3000.
-    
-    2. Add "localhost:3000" to Auth0 "Clients > Allowed callback URLs".
-    
-    3. Point your browser to 
-         
-           https://<domain>/authorize
-               ?scope=openid name nickname email user_id
-               &response_type=token
-               &client_id=<client_id>
-               &redirect_uri=localhost:3000
-               &nonce=1234&state=1234
-
-       where you replace `<domain>` and `<client_id>` by your own Auth0 client settings.
-       N.B. The "scope" argument is what permits to have the "name" field in the token.
-       
-    4. Log in; you get redirected to localhost:3000/ and you can find an "id_token" in the url.
-       This is a JWT that bam-server accepts (*not* "access_token"). For instance:
-       
-       > http://<i></i>localhost:3000/#access_token=ZVvVzzBIucYdhnW3&expires_in=86400&id_token=**xxxxxxx.yyyyyyy.zzzzzzz**&token_type=Bearer&state=1234  
-
-3. Prepare the database
-
-    1. Tell your application where to find the certificate by adding a row to the `apps` table
-       of the database:
-       
-           INSERT INTO apps(iss, name) VALUES ('https://<auth0_domain>/', 'test', NULL);
-           
-       where you replace `<auth0_domain>` by your own Auth0 Domain setting, and `'test'` refers to the 
-       public key file you just created.
-       N.B. A typical "iss" claim for Auth0 looks like "https://<domain>/", but in principle it can be anything else.
-       
-       N.B. This functionality will become part of the REST API.
-       
-    2. Add a user for this app to the database:
-    
-           INSERT INTO users(app_id, username) VALUES (<app_id>, <username>);
-           
-       where the `<app_id>` is the id of the row inserted above, and `<username>` corresponds
-       to the "name" claim of the JWT (the user name in the client).
-       In Auth0, the `<username>` is your email.
-
-       N.B. This functionality will become part of the REST API.
-       
-    3. Add a sample:
-     
-           INSERT INTO bam(sample, filename) VALUES (<sample_name>, <bam_filename>);
-           
-       where you replace `<sample_name>` by the unique identifier of the sample,
-       and `<bam_filename>` by the name of the BAM file.
-       
-       Make sure the BAM file is available at `env.BAM_PATH` (see "Configuration" above).
-    
-       N.B. This functionality will become part of the REST API.
-       
-    4. Attribute the sample to a user:
-    
-           INSERT INTO users_bam(user_id, bam_id) VALUES (<user_id>, <bam_id>);
-           
-       where `<user_id>` and `<bam_id>` are the respective ids of the rows inserted above.
-
-       N.B. This functionality will become part of the REST API.
-
-3. Use the token
-
-   Try to read a BAM index with curl:
-    
-       curl -i -H "Authorization: Bearer <token>" http://localhost:9000/bai/<sample_name>
