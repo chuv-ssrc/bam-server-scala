@@ -25,6 +25,11 @@ The authorization process works as follows:
 
 3. The JWT is verified using the key.
 
+Bam-server can work with two kinds of signature algorithms:
+
+* **HMAC** (shared secret)
+* **RSA** (asymmetric private/public key) (recommended)
+
 
 HMAC protocol
 -------------
@@ -79,7 +84,7 @@ RSA keys are not strings, but can be stored and shared as text in these common f
 
 Copy one of these into the `key` column of the `apps` table.
 
-.. note::
+.. important::
 
   Database TEXT fields can only hold one line of text.
   You must replace all line returns by ``\n``, for instance:

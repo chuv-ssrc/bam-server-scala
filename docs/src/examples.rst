@@ -130,7 +130,7 @@ Its only role is to identify users of the client app and return signed tokens.
 
            INSERT INTO bam(sample, filename) VALUES (<sample_name>, <bam_filename>);
 
-       Make sure the BAM file is available at `env.BAM_PATH` (see "Configuration").
+       Make sure the BAM file is available at `env.BAM_PATH` (see Configuration in :doc:`./installation`).
 
     3. Attribute the sample to a user:
 
