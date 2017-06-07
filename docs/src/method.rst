@@ -25,7 +25,8 @@ Notes:
   only maps user identifiers as returned by the auth server, to sample identifiers and the corresponding BAM files.
 
 * Client apps can access bam-server remotely, but for the moment,
-  bam-server itself can only access files that are located on the same machine as itself.
+  bam-server itself can only access files that are located on the same machine as itself
+  (the location of BAM files is defined using a configuration variable `BAM_PATH`, see :doc:`./installation`).
   One cannot provide a URL as a file path in the database.
 
 

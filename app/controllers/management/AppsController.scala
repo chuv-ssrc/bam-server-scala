@@ -21,7 +21,7 @@ class AppsController @Inject()(db: Database) extends Controller {
   /**
     * Add an app to the database.
     * Expects a JSON body of the type
-    * ```{ "iss": "as in jwt claim", "key": "/", "description": "" }```
+    * ```{ "iss": "as in jwt claim", "key": "verification key", "description": "" }```
     */
   def addApp() = AdminAction(parse.json) { implicit request =>
 

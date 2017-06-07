@@ -13,8 +13,10 @@ Bam-server can return portions of BAM files using 3 different strategies:
 Authorization
 -------------
 
-All requests expect an Authorization header to be added to the request,
-containing a signed Bearer token (JWT). For example:
+Only registered users (present in bam-server's database in the `users` table) can use these routes.
+
+Users are identified using an Authorization header to be added to the request,
+containing a signed Bearer token (JWT, see :doc:`./auth`). All requests expect such a header. For example:
 
 .. code:: bash
 
