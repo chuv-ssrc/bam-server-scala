@@ -22,6 +22,6 @@ Bam-server can return portions of BAM files using 3 different strategies:
 
 For the complete documentation, see
 
-[](http://bam-server-scala.readthedocs.io/en/latest/src/about.html)
+[http://bam-server-scala.readthedocs.io/en/latest/src/about.html)](http://bam-server-scala.readthedocs.io/en/latest/src/about.html)
 
 
