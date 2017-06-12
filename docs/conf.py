@@ -120,10 +120,10 @@ todo_include_todos = False
 
 ###  ReadTheDocs theme
 # on_rtd is whether we are on readthedocs.org, this line of code grabbed from docs.readthedocs.org
-    import sphinx_rtd_theme
-    html_theme = 'sphinx_rtd_theme' 
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-    #html_theme_path = ["_themes", ]
+import sphinx_rtd_theme
+html_theme = 'sphinx_rtd_theme' 
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+#html_theme_path = ["_themes", ]
 # otherwise, readthedocs.org uses their theme by default, so no need to specify it
 
 # The name for this set of Sphinx documents.
