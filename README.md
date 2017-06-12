@@ -17,8 +17,8 @@ that maps each BAM file name with the corresponding sample identifier.
 Bam-server can return portions of BAM files using 3 different strategies:
 
 1. Extracting a range of bytes;
-2. Using samtools if available;
-3. Using the Picard-tools library.
+2. Using samtools if available to return reads form a region in BAM format;
+3. Using htsjdk to return reads as JSON.
 
 For the complete documentation, see
 
